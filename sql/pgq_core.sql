@@ -92,8 +92,6 @@ select pgq.seq_setval('tmptest_seq', 15);
 select pgq.seq_getval('tmptest_seq');
 
 select * from pgq.maint_operations();
-alter table pgq.queue add column queue_extra_maint text[];
-select * from pgq.maint_operations();
 update pgq.queue set queue_extra_maint = array['baz', 'foo.bar'];
 select * from pgq.maint_operations();
 

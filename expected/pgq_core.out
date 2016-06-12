@@ -339,14 +339,6 @@ select * from pgq.maint_operations();
  pgq.maint_rotate_tables_step2 | 
 (2 rows)
 
-alter table pgq.queue add column queue_extra_maint text[];
-select * from pgq.maint_operations();
-           func_name           | func_arg 
--------------------------------+----------
- pgq.maint_rotate_tables_step1 | myqueue
- pgq.maint_rotate_tables_step2 | 
-(2 rows)
-
 update pgq.queue set queue_extra_maint = array['baz', 'foo.bar'];
 select * from pgq.maint_operations();
            func_name           | func_arg 

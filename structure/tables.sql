@@ -70,6 +70,7 @@ create table pgq.consumer (
 --      queue_data_pfx              - prefix for data table names
 --      queue_event_seq             - sequence for event id's
 --      queue_tick_seq              - sequence for tick id's
+--      queue_extra_maint           - array of functon names to call during maintenance
 -- ----------------------------------------------------------------------
 create table pgq.queue (
         queue_id                    serial,
@@ -94,6 +95,8 @@ create table pgq.queue (
         queue_data_pfx              text        not null,
         queue_event_seq             text        not null,
         queue_tick_seq              text        not null,
+
+        queue_extra_maint           text[],
 
         constraint queue_pkey primary key (queue_id),
         constraint queue_name_uq unique (queue_name)
