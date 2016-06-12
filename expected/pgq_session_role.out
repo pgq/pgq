@@ -1,0 +1,90 @@
+\set VERBOSITY 'terse'
+set client_min_messages = 'warning';
+show session_replication_role;
+ session_replication_role 
+--------------------------
+ origin
+(1 row)
+
+select pgq.create_queue('role_test_enabled');
+ create_queue 
+--------------
+            1
+(1 row)
+
+select pgq.create_queue('role_test_disabled');
+ create_queue 
+--------------
+            1
+(1 row)
+
+update pgq.queue set queue_disable_insert=true where queue_name = 'role_test_disabled';
+select pgq.insert_event('role_test_enabled', 'enabled', 'role:origin');
+ insert_event 
+--------------
+            1
+(1 row)
+
+select pgq.insert_event('role_test_disabled', 'disabled', 'role:origin');
+ERROR:  Insert into queue disallowed
+set session_replication_role = 'replica';
+show session_replication_role;
+ session_replication_role 
+--------------------------
+ replica
+(1 row)
+
+select pgq.insert_event('role_test_enabled', 'enabled', 'role:replica');
+ insert_event 
+--------------
+            2
+(1 row)
+
+select pgq.insert_event('role_test_disabled', 'disabled', 'role:replica');
+ insert_event 
+--------------
+            2
+(1 row)
+
+set session_replication_role = 'local';
+show session_replication_role;
+ session_replication_role 
+--------------------------
+ local
+(1 row)
+
+select pgq.insert_event('role_test_enabled', 'enabled', 'role:local');
+ insert_event 
+--------------
+            3
+(1 row)
+
+select pgq.insert_event('role_test_disabled', 'disabled', 'role:local');
+ERROR:  Insert into queue disallowed
+set session_replication_role = 'origin';
+show session_replication_role;
+ session_replication_role 
+--------------------------
+ origin
+(1 row)
+
+select pgq.insert_event('role_test_enabled', 'enabled', 'role:origin');
+ insert_event 
+--------------
+            4
+(1 row)
+
+select pgq.insert_event('role_test_disabled', 'disabled', 'role:origin');
+ERROR:  Insert into queue disallowed
+select pgq.drop_queue('role_test_enabled');
+ drop_queue 
+------------
+          1
+(1 row)
+
+select pgq.drop_queue('role_test_disabled');
+ drop_queue 
+------------
+          1
+(1 row)
+

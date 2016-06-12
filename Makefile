@@ -4,7 +4,8 @@ EXTENSION = pgq
 EXT_VERSION = 3.2.6
 EXT_OLD_VERSIONS = 3.1 3.1.1 3.1.2 3.1.3 3.1.6 3.2 3.2.3
 
-PGQ_TESTS = pgq_core pgq_core_disabled pgq_core_tx_limit pgq_perms \
+PGQ_TESTS = pgq_core pgq_core_disabled pgq_core_tx_limit \
+	    pgq_session_role pgq_perms \
 	    logutriga sqltriga trunctrg
 
 # comment it out if not wanted
