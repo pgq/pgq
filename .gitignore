@@ -11,6 +11,7 @@ sql/*/results
 newgrants_*.sql
 oldgrants_*.sql
 
+debian/control
 debian/tmp
 debian/files
 debian/postgresql-*
@@ -21,3 +22,5 @@ debian/*-stamp
 
 pgq.sql
 pgq.upgrade.sql
+
+results/
