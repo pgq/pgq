@@ -1,9 +1,6 @@
 \set VERBOSITY 'terse'
 set client_min_messages = 'warning';
-
-select 1 from (select set_config(name, 'escape', false) as ignore
-          from pg_settings where name = 'bytea_output') x
-          where x.ignore = 'foo';
+set bytea_output = 'hex';
 
 create or replace function pgq.insert_event(queue_name text, ev_type text, ev_data text, ev_extra1 text, ev_extra2 text, ev_extra3 text, ev_extra4 text)
 returns bigint as $$

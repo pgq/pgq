@@ -1,12 +1,6 @@
 \set VERBOSITY 'terse'
 set client_min_messages = 'warning';
-select 1 from (select set_config(name, 'escape', false) as ignore
-          from pg_settings where name = 'bytea_output') x
-          where x.ignore = 'foo';
- ?column? 
-----------
-(0 rows)
-
+set bytea_output = 'hex';
 create or replace function pgq.insert_event(queue_name text, ev_type text, ev_data text, ev_extra1 text, ev_extra2 text, ev_extra3 text, ev_extra4 text)
 returns bigint as $$
 begin
@@ -24,7 +18,7 @@ for each row execute procedure pgq.logutriga('udata_que');
 insert into udata (txt) values ('text1');
 WARNING:  insert_event(udata_que, I:id, id=1&txt=text1&bin, public.udata)
 insert into udata (bin) values (E'bi\tn\\000bin');
-WARNING:  insert_event(udata_que, I:id, id=2&txt&bin=bi%5c011n%5c000bin, public.udata)
+WARNING:  insert_event(udata_que, I:id, id=2&txt&bin=%5cx6269096e0062696e, public.udata)
 -- test ignore
 drop trigger utest on udata;
 truncate udata;
