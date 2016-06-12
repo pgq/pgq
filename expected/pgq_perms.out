@@ -1,0 +1,42 @@
+\set ECHO off
+drop role if exists pgq_test_producer;
+drop role if exists pgq_test_consumer;
+drop role if exists pgq_test_admin;
+create role pgq_test_consumer with login in role pgq_reader;
+create role pgq_test_producer with login in role pgq_writer;
+create role pgq_test_admin with login in role pgq_admin;
+\c - pgq_test_admin
+select * from pgq.create_queue('pqueue'); -- ok
+ create_queue 
+--------------
+            1
+(1 row)
+
+\c - pgq_test_producer
+select * from pgq.create_queue('pqueue'); -- fail
+ERROR:  permission denied for function create_queue
+select * from pgq.insert_event('pqueue', 'test', 'data'); -- ok
+ insert_event 
+--------------
+            1
+(1 row)
+
+select * from pgq.register_consumer('pqueue', 'prod'); -- fail
+ERROR:  permission denied for function register_consumer
+\c - pgq_test_consumer
+select * from pgq.create_queue('pqueue'); -- fail
+ERROR:  permission denied for function create_queue
+select * from pgq.insert_event('pqueue', 'test', 'data'); -- fail
+ERROR:  permission denied for function insert_event
+select * from pgq.register_consumer('pqueue', 'cons'); -- ok
+ register_consumer 
+-------------------
+                 1
+(1 row)
+
+select * from pgq.next_batch('pqueue', 'cons'); -- ok
+ next_batch 
+------------
+           
+(1 row)
+

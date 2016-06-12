@@ -1,0 +1,12 @@
+
+Schema overview
+===============
+
+pgq.consumer		consumer name <> id mapping
+pgq.queue		queue information
+pgq.subscription	consumer registrations
+pgq.tick		snapshots that group events into batches
+pgq.retry_queue		events to be retried
+pgq.failed_queue	events that have failed
+pgq.event_*		data tables
+

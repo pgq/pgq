@@ -1,0 +1,424 @@
+\set VERBOSITY 'terse'
+set client_min_messages = 'warning';
+select * from pgq.maint_tables_to_vacuum();
+ maint_tables_to_vacuum 
+------------------------
+(0 rows)
+
+select * from pgq.maint_retry_events();
+ maint_retry_events 
+--------------------
+                  0
+(1 row)
+
+select pgq.create_queue('tmpqueue');
+ create_queue 
+--------------
+            1
+(1 row)
+
+select pgq.register_consumer('tmpqueue', 'consumer');
+ register_consumer 
+-------------------
+                 1
+(1 row)
+
+select pgq.unregister_consumer('tmpqueue', 'consumer');
+ unregister_consumer 
+---------------------
+                   1
+(1 row)
+
+select pgq.drop_queue('tmpqueue');
+ drop_queue 
+------------
+          1
+(1 row)
+
+select pgq.create_queue('myqueue');
+ create_queue 
+--------------
+            1
+(1 row)
+
+select pgq.register_consumer('myqueue', 'consumer');
+ register_consumer 
+-------------------
+                 1
+(1 row)
+
+update pgq.queue set queue_ticker_max_lag = '0', queue_ticker_idle_period = '0';
+select pgq.next_batch('myqueue', 'consumer');
+ next_batch 
+------------
+           
+(1 row)
+
+select pgq.next_batch('myqueue', 'consumer');
+ next_batch 
+------------
+           
+(1 row)
+
+select pgq.ticker();
+ ticker 
+--------
+      1
+(1 row)
+
+select pgq.next_batch('myqueue', 'consumer');
+ next_batch 
+------------
+          1
+(1 row)
+
+select pgq.next_batch('myqueue', 'consumer');
+ next_batch 
+------------
+          1
+(1 row)
+
+select queue_name, consumer_name, prev_tick_id, tick_id, lag < '30 seconds' as lag_exists from pgq.get_batch_info(1);
+ queue_name | consumer_name | prev_tick_id | tick_id | lag_exists 
+------------+---------------+--------------+---------+------------
+ myqueue    | consumer      |            1 |       2 | t
+(1 row)
+
+select queue_name, queue_ntables, queue_cur_table, queue_rotation_period,
+       queue_switch_time <= now() as switch_time_exists,
+       queue_external_ticker, queue_ticker_max_count, queue_ticker_max_lag,
+       queue_ticker_idle_period, ticker_lag < '2 hours' as ticker_lag_exists,
+       last_tick_id
+  from pgq.get_queue_info() order by 1;
+ queue_name | queue_ntables | queue_cur_table | queue_rotation_period | switch_time_exists | queue_external_ticker | queue_ticker_max_count | queue_ticker_max_lag | queue_ticker_idle_period | ticker_lag_exists | last_tick_id 
+------------+---------------+-----------------+-----------------------+--------------------+-----------------------+------------------------+----------------------+--------------------------+-------------------+--------------
+ myqueue    |             3 |               0 | @ 2 hours             | t                  | f                     |                    500 | @ 0                  | @ 0                      | t                 |            2
+(1 row)
+
+select queue_name, consumer_name, lag < '30 seconds' as lag_exists,
+       last_seen < '30 seconds' as last_seen_exists,
+       last_tick, current_batch, next_tick
+  from pgq.get_consumer_info() order by 1, 2;
+ queue_name | consumer_name | lag_exists | last_seen_exists | last_tick | current_batch | next_tick 
+------------+---------------+------------+------------------+-----------+---------------+-----------
+ myqueue    | consumer      | t          | t                |         1 |             1 |         2
+(1 row)
+
+select pgq.finish_batch(1);
+ finish_batch 
+--------------
+            1
+(1 row)
+
+select pgq.finish_batch(1);
+WARNING:  finish_batch: batch 1 not found
+ finish_batch 
+--------------
+            0
+(1 row)
+
+select pgq.ticker();
+ ticker 
+--------
+      1
+(1 row)
+
+select pgq.next_batch('myqueue', 'consumer');
+ next_batch 
+------------
+          2
+(1 row)
+
+select * from pgq.batch_event_tables(2);
+ batch_event_tables 
+--------------------
+ pgq.event_2_0
+(1 row)
+
+select * from pgq.get_batch_events(2);
+ ev_id | ev_time | ev_txid | ev_retry | ev_type | ev_data | ev_extra1 | ev_extra2 | ev_extra3 | ev_extra4 
+-------+---------+---------+----------+---------+---------+-----------+-----------+-----------+-----------
+(0 rows)
+
+select pgq.finish_batch(2);
+ finish_batch 
+--------------
+            1
+(1 row)
+
+select pgq.insert_event('myqueue', 'r1', 'data');
+ insert_event 
+--------------
+            1
+(1 row)
+
+select pgq.insert_event('myqueue', 'r2', 'data', 'extra1', 'extra2', 'extra3', 'extra4');
+ insert_event 
+--------------
+            2
+(1 row)
+
+select pgq.insert_event('myqueue', 'r3', 'data');
+ insert_event 
+--------------
+            3
+(1 row)
+
+select pgq.current_event_table('myqueue');
+ current_event_table 
+---------------------
+ pgq.event_2_0
+(1 row)
+
+select pgq.ticker();
+ ticker 
+--------
+      1
+(1 row)
+
+select * from pgq.next_batch_custom('myqueue', 'consumer', '1 hour', null, null);
+ batch_id | cur_tick_id | prev_tick_id | cur_tick_time | prev_tick_time | cur_tick_event_seq | prev_tick_event_seq 
+----------+-------------+--------------+---------------+----------------+--------------------+---------------------
+          |             |              |               |                |                    |                    
+(1 row)
+
+select * from pgq.next_batch_custom('myqueue', 'consumer', null, 10000, null);
+ batch_id | cur_tick_id | prev_tick_id | cur_tick_time | prev_tick_time | cur_tick_event_seq | prev_tick_event_seq 
+----------+-------------+--------------+---------------+----------------+--------------------+---------------------
+          |             |              |               |                |                    |                    
+(1 row)
+
+select * from pgq.next_batch_custom('myqueue', 'consumer', null, null, '10 minutes');
+ batch_id | cur_tick_id | prev_tick_id | cur_tick_time | prev_tick_time | cur_tick_event_seq | prev_tick_event_seq 
+----------+-------------+--------------+---------------+----------------+--------------------+---------------------
+          |             |              |               |                |                    |                    
+(1 row)
+
+select pgq.next_batch('myqueue', 'consumer');
+ next_batch 
+------------
+          3
+(1 row)
+
+select ev_id,ev_retry,ev_type,ev_data,ev_extra1,ev_extra2,ev_extra3,ev_extra4 from pgq.get_batch_events(3);
+ ev_id | ev_retry | ev_type | ev_data | ev_extra1 | ev_extra2 | ev_extra3 | ev_extra4 
+-------+----------+---------+---------+-----------+-----------+-----------+-----------
+     1 |          | r1      | data    |           |           |           | 
+     2 |          | r2      | data    | extra1    | extra2    | extra3    | extra4
+     3 |          | r3      | data    |           |           |           | 
+(3 rows)
+
+begin;
+select ev_id,ev_retry,ev_type,ev_data,ev_extra1,ev_extra2,ev_extra3,ev_extra4
+    from pgq.get_batch_cursor(3, 'acurs', 10);
+ ev_id | ev_retry | ev_type | ev_data | ev_extra1 | ev_extra2 | ev_extra3 | ev_extra4 
+-------+----------+---------+---------+-----------+-----------+-----------+-----------
+     1 |          | r1      | data    |           |           |           | 
+     2 |          | r2      | data    | extra1    | extra2    | extra3    | extra4
+     3 |          | r3      | data    |           |           |           | 
+(3 rows)
+
+close acurs;
+select ev_id,ev_retry,ev_type,ev_data,ev_extra1,ev_extra2,ev_extra3,ev_extra4
+    from pgq.get_batch_cursor(3, 'acurs', 2);
+ ev_id | ev_retry | ev_type | ev_data | ev_extra1 | ev_extra2 | ev_extra3 | ev_extra4 
+-------+----------+---------+---------+-----------+-----------+-----------+-----------
+     1 |          | r1      | data    |           |           |           | 
+     2 |          | r2      | data    | extra1    | extra2    | extra3    | extra4
+(2 rows)
+
+close acurs;
+select ev_id,ev_retry,ev_type,ev_data,ev_extra1,ev_extra2,ev_extra3,ev_extra4
+    from pgq.get_batch_cursor(3, 'acurs', 2, 'ev_id = 1');
+ ev_id | ev_retry | ev_type | ev_data | ev_extra1 | ev_extra2 | ev_extra3 | ev_extra4 
+-------+----------+---------+---------+-----------+-----------+-----------+-----------
+     1 |          | r1      | data    |           |           |           | 
+(1 row)
+
+close acurs;
+end;
+select pgq.event_retry(3, 2, 0);
+ event_retry 
+-------------
+           1
+(1 row)
+
+select pgq.batch_retry(3, 0);
+ batch_retry 
+-------------
+           2
+(1 row)
+
+select pgq.finish_batch(3);
+ finish_batch 
+--------------
+            1
+(1 row)
+
+select pgq.event_retry_raw('myqueue', 'consumer', now(), 666, now(), 0,
+        'rawtest', 'data', null, null, null, null);
+ event_retry_raw 
+-----------------
+             666
+(1 row)
+
+select pgq.ticker();
+ ticker 
+--------
+      1
+(1 row)
+
+-- test maint
+update pgq.queue set queue_rotation_period = '0 seconds';
+select queue_name, pgq.maint_rotate_tables_step1(queue_name) from pgq.queue;
+ queue_name | maint_rotate_tables_step1 
+------------+---------------------------
+ myqueue    |                         0
+(1 row)
+
+select pgq.maint_rotate_tables_step2();
+ maint_rotate_tables_step2 
+---------------------------
+                         0
+(1 row)
+
+-- test extra
+select nextval(queue_event_seq) from pgq.queue where queue_name = 'myqueue';
+ nextval 
+---------
+       4
+(1 row)
+
+select pgq.force_tick('myqueue');
+ force_tick 
+------------
+          5
+(1 row)
+
+select nextval(queue_event_seq) from pgq.queue where queue_name = 'myqueue';
+ nextval 
+---------
+    2006
+(1 row)
+
+create sequence tmptest_seq;
+select pgq.seq_getval('tmptest_seq');
+ seq_getval 
+------------
+          1
+(1 row)
+
+select pgq.seq_setval('tmptest_seq', 10);
+ seq_setval 
+------------
+         10
+(1 row)
+
+select pgq.seq_setval('tmptest_seq', 5);
+ seq_setval 
+------------
+         10
+(1 row)
+
+select pgq.seq_setval('tmptest_seq', 15);
+ seq_setval 
+------------
+         15
+(1 row)
+
+select pgq.seq_getval('tmptest_seq');
+ seq_getval 
+------------
+         15
+(1 row)
+
+-- test disabled
+select pgq.insert_event('myqueue', 'test', 'event');
+ insert_event 
+--------------
+         2007
+(1 row)
+
+update pgq.queue set queue_disable_insert = true where queue_name = 'myqueue';
+select pgq.insert_event('myqueue', 'test', 'event');
+ERROR:  Insert into queue disallowed
+update pgq.queue set queue_disable_insert = false where queue_name = 'myqueue';
+select pgq.insert_event('myqueue', 'test', 'event');
+ insert_event 
+--------------
+         2009
+(1 row)
+
+-- test limit
+update pgq.queue set queue_per_tx_limit = 2 where queue_name = 'myqueue';
+begin;
+select pgq.insert_event('myqueue', 'test', 'event1');
+ insert_event 
+--------------
+         2010
+(1 row)
+
+select pgq.insert_event('myqueue', 'test', 'event2');
+ insert_event 
+--------------
+         2011
+(1 row)
+
+select pgq.insert_event('myqueue', 'test', 'event3');
+ERROR:  Queue 'myqueue' allows max 2 events from one TX
+end;
+update pgq.queue set queue_per_tx_limit = 0 where queue_name = 'myqueue';
+begin;
+select pgq.insert_event('myqueue', 'test', 'event1');
+ERROR:  Queue 'myqueue' allows max 0 events from one TX
+select pgq.insert_event('myqueue', 'test', 'event2');
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+select pgq.insert_event('myqueue', 'test', 'event3');
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+end;
+update pgq.queue set queue_per_tx_limit = null where queue_name = 'myqueue';
+begin;
+select pgq.insert_event('myqueue', 'test', 'event1');
+ insert_event 
+--------------
+         2014
+(1 row)
+
+select pgq.insert_event('myqueue', 'test', 'event2');
+ insert_event 
+--------------
+         2015
+(1 row)
+
+select pgq.insert_event('myqueue', 'test', 'event3');
+ insert_event 
+--------------
+         2016
+(1 row)
+
+end;
+select * from pgq.maint_operations();
+           func_name           | func_arg 
+-------------------------------+----------
+ pgq.maint_rotate_tables_step1 | myqueue
+ pgq.maint_rotate_tables_step2 | 
+(2 rows)
+
+alter table pgq.queue add column queue_extra_maint text[];
+select * from pgq.maint_operations();
+           func_name           | func_arg 
+-------------------------------+----------
+ pgq.maint_rotate_tables_step1 | myqueue
+ pgq.maint_rotate_tables_step2 | 
+(2 rows)
+
+update pgq.queue set queue_extra_maint = array['baz', 'foo.bar'];
+select * from pgq.maint_operations();
+           func_name           | func_arg 
+-------------------------------+----------
+ pgq.maint_rotate_tables_step1 | myqueue
+ pgq.maint_rotate_tables_step2 | 
+ baz                           | myqueue
+ foo.bar                       | myqueue
+(4 rows)
+

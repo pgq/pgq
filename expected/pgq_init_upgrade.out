@@ -1,0 +1,11 @@
+\set ECHO none
+ upgrade_schema 
+----------------
+              0
+(1 row)
+
+ upgrade_schema 
+----------------
+              0
+(1 row)
+

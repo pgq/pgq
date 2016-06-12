@@ -1,0 +1,49 @@
+-- create noext schema
+\set ECHO none
+ upgrade_schema 
+----------------
+              0
+(1 row)
+
+ create_queue 
+--------------
+            1
+(1 row)
+
+-- convert to extension
+create extension pgq from 'unpackaged';
+select array_length(extconfig, 1) from pg_catalog.pg_extension where extname = 'pgq';
+ array_length 
+--------------
+            7
+(1 row)
+
+select pgq.create_queue('testqueue2');
+ create_queue 
+--------------
+            1
+(1 row)
+
+--drop extension pgq; -- will fail
+select pgq.drop_queue('testqueue2');
+ drop_queue 
+------------
+          1
+(1 row)
+
+select pgq.drop_queue('testqueue1');
+ drop_queue 
+------------
+          1
+(1 row)
+
+-- drop schema failure
+drop extension pgq;
+-- create clean schema
+create extension pgq;
+select array_length(extconfig, 1) from pg_catalog.pg_extension where extname = 'pgq';
+ array_length 
+--------------
+            7
+(1 row)
+
