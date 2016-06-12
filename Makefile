@@ -19,7 +19,7 @@ Extension_regress = $(UPGRADE_TESTS) pgq_init_ext $(PGQ_TESTS)
 # MAJORVERSION was defined in 8.4
 trunc_test = $(if $(MAJORVERSION),trunctrg)
 
-include ../common-pgxs.mk
+include mk/common-pgxs.mk
 
 SUBDIRS = lowlevel triggers
 
