@@ -4,8 +4,6 @@ EXTENSION = pgq
 EXT_VERSION = 3.2.6
 EXT_OLD_VERSIONS = 3.1 3.1.1 3.1.2 3.1.3 3.1.6 3.2 3.2.3
 
-DOCS = README.pgq
-
 PGQ_TESTS = pgq_core pgq_perms logutriga sqltriga trunctrg
 
 # comment it out if not wanted
