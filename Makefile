@@ -6,18 +6,15 @@ EXT_OLD_VERSIONS = 3.1 3.1.1 3.1.2 3.1.3 3.1.6 3.2 3.2.3
 
 DOCS = README.pgq
 
-PGQ_TESTS = pgq_core pgq_perms logutriga sqltriga $(trunc_test)
+PGQ_TESTS = pgq_core pgq_perms logutriga sqltriga trunctrg
 
 # comment it out if not wanted
-UPGRADE_TESTS = pgq_init_upgrade $(PGQ_TESTS) clean
+#UPGRADE_TESTS = pgq_init_upgrade $(PGQ_TESTS) clean
 
 Contrib_data = structure/uninstall_pgq.sql
 
 Contrib_regress   = $(UPGRADE_TESTS) pgq_init_noext $(PGQ_TESTS)
 Extension_regress = $(UPGRADE_TESTS) pgq_init_ext $(PGQ_TESTS)
-
-# MAJORVERSION was defined in 8.4
-trunc_test = $(if $(MAJORVERSION),trunctrg)
 
 include mk/common-pgxs.mk
 
