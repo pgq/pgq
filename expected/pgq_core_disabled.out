@@ -1,0 +1,31 @@
+\set VERBOSITY 'terse'
+set client_min_messages = 'warning';
+select pgq.create_queue('queue_disabled');
+ create_queue 
+--------------
+            1
+(1 row)
+
+-- test disabled
+select pgq.insert_event('queue_disabled', 'test', 'event');
+ insert_event 
+--------------
+            1
+(1 row)
+
+update pgq.queue set queue_disable_insert = true where queue_name = 'queue_disabled';
+select pgq.insert_event('queue_disabled', 'test', 'event');
+ERROR:  Insert into queue disallowed
+update pgq.queue set queue_disable_insert = false where queue_name = 'queue_disabled';
+select pgq.insert_event('queue_disabled', 'test', 'event');
+ insert_event 
+--------------
+            3
+(1 row)
+
+select pgq.drop_queue('queue_disabled');
+ drop_queue 
+------------
+          1
+(1 row)
+
