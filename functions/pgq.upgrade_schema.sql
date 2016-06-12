@@ -36,8 +36,14 @@ begin
         cnt := cnt + 1;
     end if;
 
+    perform 1 from pg_attribute
+        where attrelid = 'pgq.queue'::regclass
+          and attname = 'queue_extra_maint';
+    if not found then
+        alter table pgq.queue add column queue_extra_maint text[];
+    end if;
+
     return cnt;
 end;
 $$ language plpgsql;
-
 
