@@ -1,0 +1,157 @@
+\set VERBOSITY 'terse'
+set client_min_messages = 'warning';
+set DateStyle = 'ISO, YMD';
+set timezone = 'UTC';
+set bytea_output = 'hex';
+create or replace function pgq.insert_event(queue_name text, ev_type text, ev_data text, ev_extra1 text, ev_extra2 text, ev_extra3 text, ev_extra4 text)
+returns bigint as $$
+begin
+    raise warning 'insert_event(q=[%], t=[%], d=[%])', queue_name, ev_type, ev_data;
+    return 1;
+end;
+$$ language plpgsql;
+create function typetest(typ text, val text) returns void as $$
+begin
+    execute 'create table ttest (nr int4, col '||typ||' default '||quote_nullable(val)||')';
+
+    execute 'create trigger types_trig_1 after insert or update or delete on ttest'
+        || ' for each row execute procedure pgq.logutriga(''logutriga'')';
+
+    execute 'create trigger types_trig_2 after insert or update or delete on ttest'
+        || ' for each row execute procedure pgq.sqltriga(''sqltriga'');';
+
+    execute 'insert into ttest (nr) values (1)';
+    execute 'drop table ttest';
+end;
+$$ language plpgsql;
+select typetest('text', null);
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1',null)])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('text', $$'"quoted\string$%,@"'$$);
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%27%22quoted%5cstring%24%25%2c%40%22%27])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1',E'''"quoted\\string$%,@"''')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('bytea', $$\x00FF01$$);
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%5cx00ff01])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1',E'\\x00ff01')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('bool', 'true');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=t])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','t')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('bool', 'false');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=f])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','f')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('timestamptz', '2009-09-19 11:59:48.599');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=2009-09-19+11%3a59%3a48.599%2b00])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','2009-09-19 11:59:48.599+00')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('timestamp', '2009-09-19 11:59:48.599');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=2009-09-19+11%3a59%3a48.599])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','2009-09-19 11:59:48.599')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('date', '2009-09-19');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=2009-09-19])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','2009-09-19')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('time', '11:59:48.599');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=11%3a59%3a48.599])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','11:59:48.599')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('interval', '2 minutes');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%40+2+mins])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','@ 2 mins')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('real', '100100.666');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=100101])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','100101')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('float', '100100.6005005665');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=100100.600500567])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','100100.600500567')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('numeric(40,15)', '100100.600500566501811');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=100100.600500566501811])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','100100.600500566501811')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('box', '((1.1, 2.1), (5.6, 5.7))');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%285.6%2c5.7%29%2c%281.1%2c2.1%29])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','(5.6,5.7),(1.1,2.1)')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('uuid', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('json', '{"a": [false, null, true]}');
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%7b%22a%22%3a+%5bfalse%2c+null%2c+true%5d%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','{"a": [false, null, true]}')])
+ typetest 
+----------
+ 
+(1 row)
+
+-- restore
+drop function typetest(text,text);
+\set ECHO none
