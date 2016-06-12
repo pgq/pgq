@@ -70,37 +70,3 @@ AS '$libdir/pgq_triggers', 'pgq_sqltriga' LANGUAGE C;
 CREATE OR REPLACE FUNCTION pgq.logutriga() RETURNS TRIGGER
 AS '$libdir/pgq_triggers', 'pgq_logutriga' LANGUAGE C;
 
-
----- disable obsolete trigger
--- ----------------------------------------------------------------------
--- Function - pgq.logtriga()
---
---      (Obsolete) Non-automatic SQL trigger.  It puts row data in partial SQL form into
---      queue.  It does not auto-detect table structure, it needs to be passed
---      as trigger arg.
---
--- Purpose:
---      Used by Londiste to generate replication events.  The "partial SQL"
---      format is more compact than the urlencoded format but cannot be
---      parsed, only applied.  Which is fine for Londiste.
---
--- Parameters:
---      arg1 - queue name
---      arg2 - column type spec string where each column corresponds to one char (k/v/i).
---              if spec string is shorter than column list, rest of columns default to 'i'.
---
--- Column types:
---      k   - pkey column
---      v   - normal data column
---      i   - ignore column
---
--- Queue event fields:
---    ev_type     - I/U/D
---    ev_data     - partial SQL statement
---    ev_extra1   - table name
---
--- ----------------------------------------------------------------------
-
--- CREATE OR REPLACE FUNCTION pgq.logtriga() RETURNS trigger
--- AS '$libdir/pgq_triggers', 'pgq_logtriga' LANGUAGE C;
-
