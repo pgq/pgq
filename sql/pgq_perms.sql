@@ -1,4 +1,4 @@
-\set ECHO off
+\set ECHO none
 \set VERBOSITY 'terse'
 set client_min_messages = 'warning';
 

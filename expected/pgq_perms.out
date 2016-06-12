@@ -1,4 +1,4 @@
-\set ECHO off
+\set ECHO none
 drop role if exists pgq_test_producer;
 drop role if exists pgq_test_consumer;
 drop role if exists pgq_test_admin;
