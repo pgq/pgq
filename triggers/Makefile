@@ -1,7 +1,7 @@
 
 
 MODULE_big = pgq_triggers
-SRCS = logtriga.c logutriga.c sqltriga.c \
+SRCS = logtriga.c logutriga.c sqltriga.c jsontriga.c \
        common.c makesql.c stringutil.c \
        parsesql.c qbuilder.c
 OBJS = $(SRCS:.c=.o)

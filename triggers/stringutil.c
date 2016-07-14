@@ -22,6 +22,9 @@
 #include <parser/keywords.h>
 #include <utils/memutils.h>
 #include <utils/builtins.h>
+#if PG_VERSION_NUM >= 90200
+#include <utils/json.h>
+#endif
 
 #include "stringutil.h"
 
@@ -125,6 +128,33 @@ static void pgq_quote_ident(StringInfo buf, const char *src)
 		pfree((char *)quoted);
 }
 
+#if PG_VERSION_NUM < 90200
+
+static void escape_json(StringInfo buf, const char *p)
+{
+	appendStringInfoCharMacro(buf, '\"');
+	for (; *p; p++) {
+		switch (*p) {
+		case '\b': appendStringInfoString(buf, "\\b"); break;
+		case '\f': appendStringInfoString(buf, "\\f"); break;
+		case '\n': appendStringInfoString(buf, "\\n"); break;
+		case '\r': appendStringInfoString(buf, "\\r"); break;
+		case '\t': appendStringInfoString(buf, "\\t"); break;
+		case '"': appendStringInfoString(buf, "\\\""); break;
+		case '\\': appendStringInfoString(buf, "\\\\"); break;
+		default:
+			   if ((unsigned char) *p < ' ')
+				   appendStringInfo(buf, "\\u%04x", (int) *p);
+			   else
+				   appendStringInfoCharMacro(buf, *p);
+			   break;
+		}
+	}
+	appendStringInfoCharMacro(buf, '\"');
+}
+
+#endif
+
 void pgq_encode_cstring(StringInfo tbuf, const char *str, enum PgqEncode encoding)
 {
 	if (str == NULL)
@@ -141,6 +171,10 @@ void pgq_encode_cstring(StringInfo tbuf, const char *str, enum PgqEncode encodin
 
 	case TBUF_QUOTE_URLENC:
 		pgq_urlencode(tbuf, str);
+		break;
+
+	case TBUF_QUOTE_JSON:
+		escape_json(tbuf, str);
 		break;
 
 	default:

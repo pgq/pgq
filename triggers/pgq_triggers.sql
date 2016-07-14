@@ -1,34 +1,40 @@
 -- ----------------------------------------------------------------------
--- Function: pgq.sqltriga()
+-- Function: pgq.jsontriga()
 --
---      Trigger that generates queue events containing partial SQL.
---      It autodetects table structure.
+--      Trigger function that puts row data in JSON-encoded form into queue.
 --
 -- Purpose:
---      Replication events, that only need changed column values.
+--      Convert row data into easily parseable form.
 --
--- Parameters:
+-- Trigger parameters:
 --      arg1 - queue name
 --      argX - any number of optional arg, in any order
 --
--- Optinal arguments:
+-- Optional arguments:
 --      SKIP                - The actual operation should be skipped (BEFORE trigger)
 --      ignore=col1[,col2]  - don't look at the specified arguments
---      pkey=col1[,col2]    - Set pkey fields for the table, PK autodetection will be skipped
+--      pkey=col1[,col2]    - Set pkey fields for the table, autodetection will be skipped
 --      backup              - Put urlencoded contents of old row to ev_extra2
 --      colname=EXPR        - Override field value with SQL expression.  Can reference table
 --                            columns.  colname can be: ev_type, ev_data, ev_extra1 .. ev_extra4
 --      when=EXPR           - If EXPR returns false, don't insert event.
 --
 -- Queue event fields:
---    ev_type     - I/U/D
---    ev_data     - partial SQL statement
---    ev_extra1   - table name
---    ev_extra2   - optional urlencoded backup
+--      ev_type      - I/U/D ':' pkey_column_list
+--      ev_data      - column values urlencoded
+--      ev_extra1    - table name
+--      ev_extra2    - optional urlencoded backup
 --
+-- Regular listen trigger example:
+-- >   CREATE TRIGGER triga_nimi AFTER INSERT OR UPDATE ON customer
+-- >   FOR EACH ROW EXECUTE PROCEDURE pgq.jsontriga('qname');
+--
+-- Redirect trigger example:
+-- >   CREATE TRIGGER triga_nimi BEFORE INSERT OR UPDATE ON customer
+-- >   FOR EACH ROW EXECUTE PROCEDURE pgq.jsontriga('qname', 'SKIP');
 -- ----------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION pgq.sqltriga() RETURNS trigger
-AS '$libdir/pgq_triggers', 'pgq_sqltriga' LANGUAGE C;
+CREATE OR REPLACE FUNCTION pgq.jsontriga() RETURNS TRIGGER
+AS '$libdir/pgq_triggers', 'pgq_jsontriga' LANGUAGE C;
 
 -- ----------------------------------------------------------------------
 -- Function: pgq.logutriga()
@@ -69,4 +75,36 @@ AS '$libdir/pgq_triggers', 'pgq_sqltriga' LANGUAGE C;
 -- ----------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION pgq.logutriga() RETURNS TRIGGER
 AS '$libdir/pgq_triggers', 'pgq_logutriga' LANGUAGE C;
+
+-- ----------------------------------------------------------------------
+-- Function: pgq.sqltriga()
+--
+--      Trigger that generates queue events containing partial SQL.
+--      It autodetects table structure.
+--
+-- Purpose:
+--      Replication events, that only need changed column values.
+--
+-- Parameters:
+--      arg1 - queue name
+--      argX - any number of optional arg, in any order
+--
+-- Optinal arguments:
+--      SKIP                - The actual operation should be skipped (BEFORE trigger)
+--      ignore=col1[,col2]  - don't look at the specified arguments
+--      pkey=col1[,col2]    - Set pkey fields for the table, PK autodetection will be skipped
+--      backup              - Put urlencoded contents of old row to ev_extra2
+--      colname=EXPR        - Override field value with SQL expression.  Can reference table
+--                            columns.  colname can be: ev_type, ev_data, ev_extra1 .. ev_extra4
+--      when=EXPR           - If EXPR returns false, don't insert event.
+--
+-- Queue event fields:
+--    ev_type     - I/U/D
+--    ev_data     - partial SQL statement
+--    ev_extra1   - table name
+--    ev_extra2   - optional urlencoded backup
+--
+-- ----------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION pgq.sqltriga() RETURNS trigger
+AS '$libdir/pgq_triggers', 'pgq_sqltriga' LANGUAGE C;
 

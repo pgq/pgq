@@ -14,6 +14,7 @@ enum PgqFields {
  */
 struct PgqTriggerEvent {
 	char op_type;
+	const char *op_type_str;
 
 	/* overridable fields */
 	// fixme: check proper usage
@@ -74,6 +75,7 @@ struct PgqTableInfo {
 	int *pkey_attno;	/* pk column positions */
 	char *table_name;	/* schema-quelified table name */
 	int invalid;		/* set if the info was invalidated */
+	const char *json_info;
 
 	struct PgqTriggerInfo *tg_cache;
 };
@@ -93,6 +95,8 @@ int pgqtriga_make_sql(PgqTriggerEvent *ev, StringInfo sql);
 
 /* logutriga.c */
 void pgq_urlenc_row(PgqTriggerEvent *ev, HeapTuple row, StringInfo buf);
+
+int pgq_is_interesting_change(PgqTriggerEvent *ev, TriggerData *tg);
 
 #ifndef TRIGGER_FIRED_BY_TRUNCATE
 #define TRIGGER_FIRED_BY_TRUNCATE(tg)	0
