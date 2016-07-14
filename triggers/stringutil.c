@@ -18,8 +18,6 @@
 
 #include <postgres.h>
 #include <lib/stringinfo.h>
-#include <mb/pg_wchar.h>
-#include <parser/keywords.h>
 #include <utils/memutils.h>
 #include <utils/builtins.h>
 #if PG_VERSION_NUM >= 90200

@@ -796,7 +796,7 @@ static void override_fields(struct PgqTriggerEvent *ev)
 		if (res != SPI_OK_SELECT)
 			elog(ERROR, "Override query failed");
 		if (SPI_processed != 1)
-			elog(ERROR, "Expect 1 row from override query, got %d", SPI_processed);
+			elog(ERROR, "Expect 1 row from override query, got %d", (int)SPI_processed);
 
 		/* special handling for EV_WHEN */
 		if (i == EV_WHEN) {
