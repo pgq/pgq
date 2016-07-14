@@ -32,6 +32,26 @@
 #define SET_VARSIZE(x, len) VARATT_SIZEP(x) = len
 #endif
 
+#if PG_VERSION_NUM < 90100
+static char *quote_literal_cstr(const char *str)
+{
+	StringInfoData buf;
+
+	initStringInfo(&buf);
+
+	if (strchr(str, '\\'))
+		appendStringInfoCharMacro(&buf, 'E');
+
+	appendStringInfoCharMacro(&buf, '\'');
+	for (; *str; str++) {
+		if (*str == '\'' || *str == '\\')
+			appendStringInfoCharMacro(&buf, *str);
+		appendStringInfoCharMacro(&buf, *str);
+	}
+	appendStringInfoCharMacro(&buf, '\'');
+	return buf.data;
+}
+#endif
 
 StringInfo pgq_init_varbuf(void)
 {
