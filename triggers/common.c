@@ -60,7 +60,7 @@ static MemoryContext tbl_cache_ctx;
 static HTAB *tbl_cache_map;
 
 static const char pkey_sql[] =
-    "SELECT k.attnum, k.attname FROM pg_index i, pg_attribute k"
+    "SELECT k.attnum, k.attname FROM pg_catalog.pg_index i, pg_catalog.pg_attribute k"
     " WHERE i.indrelid = $1 AND k.attrelid = i.indexrelid"
     "   AND i.indisprimary AND k.attnum > 0 AND NOT k.attisdropped"
     " ORDER BY k.attnum";
