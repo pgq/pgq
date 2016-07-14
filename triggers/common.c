@@ -568,8 +568,8 @@ void pgq_prepare_event(struct PgqTriggerEvent *ev, TriggerData *tg, bool newstyl
 	}
 
 	if (ev->tgargs->deny) {
-		elog(ERROR, "Table '%s' to queue '%s': change not allowed (%c)",
-		     ev->table_name, ev->queue_name, ev->op_type);
+		elog(ERROR, "Table '%s' to queue '%s': change not allowed (%s)",
+		     ev->table_name, ev->queue_name, ev->op_type_str);
 	}
 
 	/*
