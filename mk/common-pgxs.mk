@@ -10,7 +10,7 @@ Extension_regress ?=
 
 # Variables that are used when extensions are not available
 Contrib_data ?=
-Contrib_data_built = $(EXTENSION).sql $(EXTENSION).upgrade.sql \
+Contrib_data_built += $(EXTENSION).sql $(EXTENSION).upgrade.sql \
 		structure/newgrants_$(EXTENSION).sql \
 		structure/oldgrants_$(EXTENSION).sql
 

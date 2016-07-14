@@ -1,8 +1,8 @@
 
 \i structure/tables.sql
 \i structure/func_internal.sql
-\i lowlevel/pgq_lowlevel.sql
+\i lowlevel_pl/insert_event.sql
 \i structure/func_public.sql
-\i structure/triggers.sql
+\i structure/triggers_pl.sql
 \i structure/grants.sql
 

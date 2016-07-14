@@ -25,3 +25,4 @@ pgq.sql
 pgq.upgrade.sql
 
 results/
+/*.sql

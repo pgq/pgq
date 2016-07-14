@@ -13,6 +13,7 @@ PGQ_TESTS = pgq_core pgq_core_disabled pgq_core_tx_limit \
 #UPGRADE_TESTS = pgq_init_upgrade $(PGQ_TESTS) clean
 
 Contrib_data = structure/uninstall_pgq.sql
+Contrib_data_built = pgq_pl_only.sql pgq_pl_only.upgrade.sql
 
 Contrib_regress   = $(UPGRADE_TESTS) pgq_init_noext $(PGQ_TESTS)
 Extension_regress = $(UPGRADE_TESTS) pgq_init_ext $(PGQ_TESTS)
@@ -36,6 +37,16 @@ sub-all sub-install sub-clean sub-distclean:
 
 lowlevel/pgq_lowlevel.sql: sub-all
 triggers/pgq_triggers.sql: sub-all
+
+PLONLY_SRCS = lowlevel_pl/insert_event.sql lowlevel_pl/logutriga.sql lowlevel_pl/sqltriga.sql
+
+pgq_pl_only.sql: $(SRCS) $(PLONLY_SRCS)
+	$(CATSQL) structure/install_pl.sql > $@
+
+pgq_pl_only.upgrade.sql: $(SRCS) $(PLONLY_SRCS)
+	$(CATSQL) structure/upgrade_pl.sql > $@
+
+plonly: pgq_pl_only.sql pgq_pl_only.upgrade.sql
 
 #
 # docs

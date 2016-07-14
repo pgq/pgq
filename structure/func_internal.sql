@@ -11,9 +11,6 @@ select pgq.upgrade_schema();
 \i functions/pgq.event_retry_raw.sql
 \i functions/pgq.find_tick_helper.sql
 
--- \i functions/pgq.insert_event_raw.sql
-\i lowlevel/pgq_lowlevel.sql
-
 -- Group: Ticker
 
 \i functions/pgq.ticker.sql
