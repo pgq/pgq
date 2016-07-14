@@ -12,6 +12,8 @@ $$ language plpgsql;
 
 create table trigger_when (nr int4 primary key, col1 text, col2 text);
 
+create trigger when_trig_0 after insert or update or delete on trigger_when
+for each row execute procedure pgq.jsontriga('jsontriga', 'when=col2=''foo''');
 create trigger when_trig_1 after insert or update or delete on trigger_when
 for each row execute procedure pgq.logutriga('logutriga', 'when=col2=''foo''');
 create trigger when_trig_2 after insert or update or delete on trigger_when

@@ -23,3 +23,4 @@ select pgq.insert_event('queue_tx_limit', 'test', 'event2');
 select pgq.insert_event('queue_tx_limit', 'test', 'event3');
 end;
 
+select pgq.drop_queue('queue_tx_limit');

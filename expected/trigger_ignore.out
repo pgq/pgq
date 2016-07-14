@@ -9,25 +9,31 @@ begin
 end;
 $$ language plpgsql;
 create table trigger_ignore (dat1 text primary key, col1 text, col2 text);
+create trigger ignore_trig_0 after insert or update or delete on trigger_ignore
+for each row execute procedure pgq.jsontriga('jsontriga', 'ignore=col2');
 create trigger ignore_trig_1 after insert or update or delete on trigger_ignore
 for each row execute procedure pgq.logutriga('logutriga', 'ignore=col2');
 create trigger ignore_trig_2 after insert or update or delete on trigger_ignore
 for each row execute procedure pgq.sqltriga('sqltriga', 'ignore=col2');
 -- test insert
 insert into trigger_ignore values ('a', 'col1', 'col2');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","trigger_ignore"],"pkey":["dat1"]}], d=[{"dat1":"a","col1":"col1"}], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[I:dat1], d=[dat1=a&col1=col1], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[I], d=[(dat1,col1) values ('a','col1')], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 -- test update of non-ignored column
 update trigger_ignore set col1 = 'col1x' where dat1 = 'a';
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"UPDATE","table":["public","trigger_ignore"],"pkey":["dat1"]}], d=[{"dat1":"a","col1":"col1x"}], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[U:dat1], d=[dat1=a&col1=col1x], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[U], d=[col1='col1x' where dat1='a'], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 update trigger_ignore set col1 = 'col1y', col2='col2y' where dat1 = 'a';
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"UPDATE","table":["public","trigger_ignore"],"pkey":["dat1"]}], d=[{"dat1":"a","col1":"col1y"}], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[U:dat1], d=[dat1=a&col1=col1y], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[U], d=[col1='col1y' where dat1='a'], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 -- test update of ignored column
 update trigger_ignore set col2 = 'col2z' where dat1 = 'a';
 -- test null update
 update trigger_ignore set col2 = col2 where dat1 = 'a';
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"UPDATE","table":["public","trigger_ignore"],"pkey":["dat1"]}], d=[{"dat1":"a","col1":"col1y"}], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[U:dat1], d=[dat1=a&col1=col1y], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[U], d=[dat1='a' where dat1='a'], 1=[public.trigger_ignore], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 -- restore

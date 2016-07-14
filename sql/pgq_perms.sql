@@ -37,3 +37,5 @@ select * from pgq.insert_event('pqueue', 'test', 'data'); -- fail
 select * from pgq.register_consumer('pqueue', 'cons'); -- ok
 select * from pgq.next_batch('pqueue', 'cons'); -- ok
 
+\c - pgq_test_admin
+select * from pgq.drop_queue('pqueue', true);

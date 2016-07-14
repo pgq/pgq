@@ -16,6 +16,8 @@ create table trigger_extra_columns (nr int4 primary key, col1 text, col2 text,
     _pgq_ev_type text, _pgq_ev_extra1 text, _pgq_ev_extra2 text default 'e2',
     _pgq_ev_extra3 text default 'e3', _pgq_ev_extra4 text default 'e4');
 
+create trigger extra_trig_0 after insert or update or delete on trigger_extra_columns
+for each row execute procedure pgq.jsontriga('jsontriga');
 create trigger extra_trig_1 after insert or update or delete on trigger_extra_columns
 for each row execute procedure pgq.logutriga('logutriga');
 create trigger extra_trig_2 after insert or update or delete on trigger_extra_columns

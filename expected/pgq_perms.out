@@ -40,3 +40,10 @@ select * from pgq.next_batch('pqueue', 'cons'); -- ok
            
 (1 row)
 
+\c - pgq_test_admin
+select * from pgq.drop_queue('pqueue', true);
+ drop_queue 
+------------
+          1
+(1 row)
+

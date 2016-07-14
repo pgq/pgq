@@ -10,35 +10,45 @@ begin
 end;
 $$ language plpgsql;
 
+create table jsontriga_trunc (dat1 text primary key);
 create table logutriga_trunc (dat1 text primary key);
 create table sqltriga_trunc (dat1 text primary key);
 
 -- test successful truncate
 
+create trigger trunc1_trig after truncate on jsontriga_trunc
+for each statement execute procedure pgq.jsontriga('jsontriga');
 create trigger trunc1_trig after truncate on logutriga_trunc
 for each statement execute procedure pgq.logutriga('logutriga');
 create trigger trunc1_trig after truncate on sqltriga_trunc
 for each statement execute procedure pgq.sqltriga('sqltriga');
 
+truncate jsontriga_trunc;
 truncate logutriga_trunc;
 truncate sqltriga_trunc;
 
 -- test deny
 
+create table jsontriga_trunc2 (dat1 text primary key);
 create table logutriga_trunc2 (dat1 text primary key);
 create table sqltriga_trunc2 (dat1 text primary key);
 
+create trigger trunc_trig after truncate on jsontriga_trunc2
+for each statement execute procedure pgq.jsontriga('jsontriga_trunc2', 'deny');
 create trigger trunc_trig after truncate on logutriga_trunc2
 for each statement execute procedure pgq.sqltriga('logutriga_trunc2', 'deny');
 create trigger trunc_trig after truncate on sqltriga_trunc2
 for each statement execute procedure pgq.sqltriga('sqltriga_trunc2', 'deny');
 
+truncate jsontriga_trunc2;
 truncate logutriga_trunc2;
 truncate sqltriga_trunc2;
 
 -- restore
+drop table jsontriga_trunc;
 drop table logutriga_trunc;
 drop table sqltriga_trunc;
+drop table jsontriga_trunc2;
 drop table logutriga_trunc2;
 drop table sqltriga_trunc2;
 \set ECHO none

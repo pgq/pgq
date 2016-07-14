@@ -1,0 +1,3 @@
+
+drop extension pgq;
+

@@ -9,6 +9,8 @@ begin
 end;
 $$ language plpgsql;
 create table trigger_when (nr int4 primary key, col1 text, col2 text);
+create trigger when_trig_0 after insert or update or delete on trigger_when
+for each row execute procedure pgq.jsontriga('jsontriga', 'when=col2=''foo''');
 create trigger when_trig_1 after insert or update or delete on trigger_when
 for each row execute procedure pgq.logutriga('logutriga', 'when=col2=''foo''');
 create trigger when_trig_2 after insert or update or delete on trigger_when
@@ -16,6 +18,7 @@ for each row execute procedure pgq.sqltriga('sqltriga', 'when=col2=''foo''');
 -- test insert with when
 insert into trigger_when values (1, 'col1', 'col2');
 insert into trigger_when values (2, 'col1', 'foo');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","trigger_when"],"pkey":["nr"]}], d=[{"nr":2,"col1":"col1","col2":"foo"}], 1=[public.trigger_when], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[I:nr], d=[nr=2&col1=col1&col2=foo], 1=[public.trigger_when], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col1,col2) values ('2','col1','foo')], 1=[public.trigger_when], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 -- restore

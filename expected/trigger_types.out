@@ -3,150 +3,220 @@ set client_min_messages = 'warning';
 set DateStyle = 'ISO, YMD';
 set timezone = 'UTC';
 set bytea_output = 'hex';
-create or replace function pgq.insert_event(queue_name text, ev_type text, ev_data text, ev_extra1 text, ev_extra2 text, ev_extra3 text, ev_extra4 text)
-returns bigint as $$
-begin
-    raise warning 'insert_event(q=[%], t=[%], d=[%])', queue_name, ev_type, ev_data;
-    return 1;
-end;
-$$ language plpgsql;
-create function typetest(typ text, val text) returns void as $$
-begin
-    execute 'create table ttest (nr int4, col '||typ||' default '||quote_nullable(val)||')';
-
-    execute 'create trigger types_trig_1 after insert or update or delete on ttest'
-        || ' for each row execute procedure pgq.logutriga(''logutriga'')';
-
-    execute 'create trigger types_trig_2 after insert or update or delete on ttest'
-        || ' for each row execute procedure pgq.sqltriga(''sqltriga'');';
-
-    execute 'insert into ttest (nr) values (1)';
-    execute 'drop table ttest';
-end;
-$$ language plpgsql;
+\set ECHO none
 select typetest('text', null);
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1',null)])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":null,"arr":"{NULL,NULL}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val&arr=%7bNULL%2cNULL%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1',null,'{NULL,NULL}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('text', $$'"quoted\string$%,@"'$$);
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%27%22quoted%5cstring%24%25%2c%40%22%27])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1',E'''"quoted\\string$%,@"''')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"'\"quoted\\string$%,@\"'","arr":"{\"'\\\"quoted\\\\string$%,@\\\"'\",\"'\\\"quoted\\\\string$%,@\\\"'\"}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=%27%22quoted%5cstring%24%25%2c%40%22%27&arr=%7b%22%27%5c%22quoted%5c%5cstring%24%25%2c%40%5c%22%27%22%2c%22%27%5c%22quoted%5c%5cstring%24%25%2c%40%5c%22%27%22%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1',E'''"quoted\\string$%,@"''',E'{"''\\"quoted\\\\string$%,@\\"''","''\\"quoted\\\\string$%,@\\"''"}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('bytea', $$\x00FF01$$);
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%5cx00ff01])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1',E'\\x00ff01')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"\\x00ff01","arr":"{\"\\\\x00ff01\",\"\\\\x00ff01\"}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=%5cx00ff01&arr=%7b%22%5c%5cx00ff01%22%2c%22%5c%5cx00ff01%22%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1',E'\\x00ff01',E'{"\\\\x00ff01","\\\\x00ff01"}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('bool', 'true');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=t])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','t')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":true,"arr":"{t,t}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=t&arr=%7bt%2ct%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','t','{t,t}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('bool', 'false');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=f])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','f')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":false,"arr":"{f,f}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=f&arr=%7bf%2cf%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','f','{f,f}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('timestamptz', '2009-09-19 11:59:48.599');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=2009-09-19+11%3a59%3a48.599%2b00])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','2009-09-19 11:59:48.599+00')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"2009-09-19T11:59:48.599+00:00","arr":"{\"2009-09-19 11:59:48.599+00\",\"2009-09-19 11:59:48.599+00\"}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=2009-09-19+11%3a59%3a48.599%2b00&arr=%7b%222009-09-19+11%3a59%3a48.599%2b00%22%2c%222009-09-19+11%3a59%3a48.599%2b00%22%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','2009-09-19 11:59:48.599+00','{"2009-09-19 11:59:48.599+00","2009-09-19 11:59:48.599+00"}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('timestamp', '2009-09-19 11:59:48.599');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=2009-09-19+11%3a59%3a48.599])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','2009-09-19 11:59:48.599')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"2009-09-19T11:59:48.599","arr":"{\"2009-09-19 11:59:48.599\",\"2009-09-19 11:59:48.599\"}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=2009-09-19+11%3a59%3a48.599&arr=%7b%222009-09-19+11%3a59%3a48.599%22%2c%222009-09-19+11%3a59%3a48.599%22%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','2009-09-19 11:59:48.599','{"2009-09-19 11:59:48.599","2009-09-19 11:59:48.599"}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('date', '2009-09-19');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=2009-09-19])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','2009-09-19')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"2009-09-19","arr":"{2009-09-19,2009-09-19}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=2009-09-19&arr=%7b2009-09-19%2c2009-09-19%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','2009-09-19','{2009-09-19,2009-09-19}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('time', '11:59:48.599');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=11%3a59%3a48.599])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','11:59:48.599')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"11:59:48.599","arr":"{11:59:48.599,11:59:48.599}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=11%3a59%3a48.599&arr=%7b11%3a59%3a48.599%2c11%3a59%3a48.599%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','11:59:48.599','{11:59:48.599,11:59:48.599}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('interval', '2 minutes');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%40+2+mins])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','@ 2 mins')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"@ 2 mins","arr":"{\"@ 2 mins\",\"@ 2 mins\"}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=%40+2+mins&arr=%7b%22%40+2+mins%22%2c%22%40+2+mins%22%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','@ 2 mins','{"@ 2 mins","@ 2 mins"}')])
  typetest 
 ----------
  
 (1 row)
 
+select typetest('int2', '10010');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":10010,"arr":"{10010,10010}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=10010&arr=%7b10010%2c10010%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','10010','{10010,10010}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('int4', '100100100');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":100100100,"arr":"{100100100,100100100}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=100100100&arr=%7b100100100%2c100100100%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','100100100','{100100100,100100100}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('int8', '100200300400500600');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":100200300400500600,"arr":"{100200300400500600,100200300400500600}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=100200300400500600&arr=%7b100200300400500600%2c100200300400500600%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','100200300400500600','{100200300400500600,100200300400500600}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('int8', '9223372036854775807');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":9223372036854775807,"arr":"{9223372036854775807,9223372036854775807}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=9223372036854775807&arr=%7b9223372036854775807%2c9223372036854775807%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','9223372036854775807','{9223372036854775807,9223372036854775807}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('int8', '-9223372036854775808');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":-9223372036854775808,"arr":"{-9223372036854775808,-9223372036854775808}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=-9223372036854775808&arr=%7b-9223372036854775808%2c-9223372036854775808%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','-9223372036854775808','{-9223372036854775808,-9223372036854775808}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('oid', '100200300');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"100200300","arr":"{100200300,100200300}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=100200300&arr=%7b100200300%2c100200300%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','100200300','{100200300,100200300}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('xid', '100200300');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"100200300","arr":"{100200300,100200300}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=100200300&arr=%7b100200300%2c100200300%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','100200300','{100200300,100200300}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('tid', '100200300');
+ERROR:  invalid input syntax for type tid: "100200300"
 select typetest('real', '100100.666');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=100101])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','100101')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"100101","arr":"{100101,100101}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=100101&arr=%7b100101%2c100101%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','100101','{100101,100101}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('float', '100100.6005005665');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=100100.600500567])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','100100.600500567')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"100100.600500567","arr":"{100100.600500567,100100.600500567}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=100100.600500567&arr=%7b100100.600500567%2c100100.600500567%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','100100.600500567','{100100.600500567,100100.600500567}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('numeric(40,15)', '100100.600500566501811');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=100100.600500566501811])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','100100.600500566501811')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"100100.600500566501811","arr":"{100100.600500566501811,100100.600500566501811}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=100100.600500566501811&arr=%7b100100.600500566501811%2c100100.600500566501811%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','100100.600500566501811','{100100.600500566501811,100100.600500566501811}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('box', '((1.1, 2.1), (5.6, 5.7))');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%285.6%2c5.7%29%2c%281.1%2c2.1%29])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','(5.6,5.7),(1.1,2.1)')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"(5.6,5.7),(1.1,2.1)","arr":"{(5.6,5.7),(1.1,2.1);(5.6,5.7),(1.1,2.1)}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=%285.6%2c5.7%29%2c%281.1%2c2.1%29&arr=%7b%285.6%2c5.7%29%2c%281.1%2c2.1%29%3b%285.6%2c5.7%29%2c%281.1%2c2.1%29%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','(5.6,5.7),(1.1,2.1)','{(5.6,5.7),(1.1,2.1);(5.6,5.7),(1.1,2.1)}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('uuid', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","arr":"{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11&arr=%7ba0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11%2ca0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11','{a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}')])
  typetest 
 ----------
  
 (1 row)
 
 select typetest('json', '{"a": [false, null, true]}');
-WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&col=%7b%22a%22%3a+%5bfalse%2c+null%2c+true%5d%7d])
-WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col) values ('1','{"a": [false, null, true]}')])
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"{\"a\": [false, null, true]}","arr":"{\"{\\\"a\\\": [false, null, true]}\",\"{\\\"a\\\": [false, null, true]}\"}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=%7b%22a%22%3a+%5bfalse%2c+null%2c+true%5d%7d&arr=%7b%22%7b%5c%22a%5c%22%3a+%5bfalse%2c+null%2c+true%5d%7d%22%2c%22%7b%5c%22a%5c%22%3a+%5bfalse%2c+null%2c+true%5d%7d%22%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','{"a": [false, null, true]}',E'{"{\\"a\\": [false, null, true]}","{\\"a\\": [false, null, true]}"}')])
+ typetest 
+----------
+ 
+(1 row)
+
+select typetest('json', '[1,2,3]');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":"[1,2,3]","arr":"{\"[1,2,3]\",\"[1,2,3]\"}"}])
+WARNING:  insert_event(q=[logutriga], t=[I:], d=[nr=1&val=%5b1%2c2%2c3%5d&arr=%7b%22%5b1%2c2%2c3%5d%22%2c%22%5b1%2c2%2c3%5d%22%7d])
+WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,val,arr) values ('1','[1,2,3]','{"[1,2,3]","[1,2,3]"}')])
  typetest 
 ----------
  

@@ -91,7 +91,10 @@ select pgq.seq_setval('tmptest_seq', 5);
 select pgq.seq_setval('tmptest_seq', 15);
 select pgq.seq_getval('tmptest_seq');
 
+drop sequence tmptest_seq;
+
 select * from pgq.maint_operations();
 update pgq.queue set queue_extra_maint = array['baz', 'foo.bar'];
 select * from pgq.maint_operations();
 
+select pgq.drop_queue('myqueue', true);

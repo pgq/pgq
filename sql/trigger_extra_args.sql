@@ -12,6 +12,10 @@ $$ language plpgsql;
 
 create table trigger_extra_args (nr int4 primary key, col1 text, col2 text);
 
+create trigger extra_trig_0 after insert or update or delete on trigger_extra_args
+for each row execute procedure pgq.jsontriga('jsontriga',
+    'ev_extra1=(nr+3)::text', 'ev_extra2=col1||col2',
+    'ev_extra3=$$333$$', 'ev_extra4=$$444$$', 'ev_type=$$badidea$$');
 create trigger extra_trig_1 after insert or update or delete on trigger_extra_args
 for each row execute procedure pgq.logutriga('logutriga',
     'ev_extra1=(nr+3)::text', 'ev_extra2=col1||col2',

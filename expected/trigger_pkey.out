@@ -9,17 +9,22 @@ begin
 end;
 $$ language plpgsql;
 create table trigger_pkey (nr int4, col1 text, col2 text);
+create trigger pkey_trig_0 after insert or update or delete on trigger_pkey
+for each row execute procedure pgq.jsontriga('jsontriga', 'pkey=nr,col1');
 create trigger pkey_trig_1 after insert or update or delete on trigger_pkey
 for each row execute procedure pgq.logutriga('logutriga', 'pkey=nr,col1');
 create trigger pkey_trig_2 after insert or update or delete on trigger_pkey
 for each row execute procedure pgq.sqltriga('sqltriga', 'pkey=nr,col1');
 insert into trigger_pkey values (1, 'col1', 'col2');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","trigger_pkey"],"pkey":["nr","col1"]}], d=[{"nr":1,"col1":"col1","col2":"col2"}], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[I:nr,col1], d=[nr=1&col1=col1&col2=col2], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[I], d=[(nr,col1,col2) values ('1','col1','col2')], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 update trigger_pkey set col2='col2x' where nr=1;
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"UPDATE","table":["public","trigger_pkey"],"pkey":["nr","col1"]}], d=[{"nr":1,"col1":"col1","col2":"col2x"}], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[U:nr,col1], d=[nr=1&col1=col1&col2=col2x], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[U], d=[col2='col2x' where nr='1' and col1='col1'], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 delete from trigger_pkey where nr=1;
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"DELETE","table":["public","trigger_pkey"],"pkey":["nr","col1"]}], d=[{"nr":1,"col1":"col1","col2":"col2x"}], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[D:nr,col1], d=[nr=1&col1=col1&col2=col2x], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[D], d=[nr='1' and col1='col1'], 1=[public.trigger_pkey], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 -- restore

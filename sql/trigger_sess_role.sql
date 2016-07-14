@@ -15,15 +15,20 @@ begin
 end;
 $$ language plpgsql;
 
+select pgq.create_queue('jsontriga_role');
 select pgq.create_queue('logutriga_role');
 select pgq.create_queue('sqltriga_role');
+update pgq.queue set queue_disable_insert = true where queue_name = 'jsontriga_role';
 update pgq.queue set queue_disable_insert = true where queue_name = 'logutriga_role';
 update pgq.queue set queue_disable_insert = true where queue_name = 'sqltriga_role';
 
 
 -- create tables
+create table jsontriga_role (dat1 text primary key);
 create table logutriga_role (dat1 text primary key);
 create table sqltriga_role (dat1 text primary key);
+create trigger trig after insert or update or delete on jsontriga_role
+for each row execute procedure pgq.jsontriga('jsontriga_role');
 create trigger trig after insert or update or delete on logutriga_role
 for each row execute procedure pgq.logutriga('logutriga_role');
 create trigger trig after insert or update or delete on sqltriga_role
@@ -31,28 +36,34 @@ for each row execute procedure pgq.sqltriga('sqltriga_role');
 
 -- origin: expect insert_event error
 show session_replication_role;
+insert into jsontriga_role values ('a');
 insert into logutriga_role values ('a');
 insert into sqltriga_role values ('a');
 
 -- local: silence, trigger does not call insert_event
 set session_replication_role = 'local';
 show session_replication_role;
+insert into jsontriga_role values ('b');
 insert into logutriga_role values ('b');
 insert into sqltriga_role values ('b');
 
 -- replica: silence, trigger does not call insert_event
 set session_replication_role = 'replica';
 show session_replication_role;
+insert into jsontriga_role values ('c');
 insert into logutriga_role values ('c');
 insert into sqltriga_role values ('c');
 
+select * from jsontriga_role;
 select * from logutriga_role;
 select * from sqltriga_role;
 
 -- restore
 set session_replication_role = 'origin';
+drop table jsontriga_role;
 drop table logutriga_role;
 drop table sqltriga_role;
+select pgq.drop_queue('jsontriga_role');
 select pgq.drop_queue('logutriga_role');
 select pgq.drop_queue('sqltriga_role');
 \set ECHO none

@@ -50,3 +50,9 @@ select pgq.insert_event('queue_tx_limit', 'test', 'event3');
 (1 row)
 
 end;
+select pgq.drop_queue('queue_tx_limit');
+ drop_queue 
+------------
+          1
+(1 row)
+

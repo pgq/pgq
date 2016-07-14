@@ -332,6 +332,7 @@ select pgq.seq_getval('tmptest_seq');
          15
 (1 row)
 
+drop sequence tmptest_seq;
 select * from pgq.maint_operations();
            func_name           | func_arg 
 -------------------------------+----------
@@ -348,4 +349,10 @@ select * from pgq.maint_operations();
  baz                           | myqueue
  foo.bar                       | myqueue
 (4 rows)
+
+select pgq.drop_queue('myqueue', true);
+ drop_queue 
+------------
+          1
+(1 row)
 

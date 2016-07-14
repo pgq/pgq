@@ -12,6 +12,8 @@ $$ language plpgsql;
 
 create table trigger_ignore (dat1 text primary key, col1 text, col2 text);
 
+create trigger ignore_trig_0 after insert or update or delete on trigger_ignore
+for each row execute procedure pgq.jsontriga('jsontriga', 'ignore=col2');
 create trigger ignore_trig_1 after insert or update or delete on trigger_ignore
 for each row execute procedure pgq.logutriga('logutriga', 'ignore=col2');
 create trigger ignore_trig_2 after insert or update or delete on trigger_ignore

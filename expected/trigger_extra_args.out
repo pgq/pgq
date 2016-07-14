@@ -9,6 +9,10 @@ begin
 end;
 $$ language plpgsql;
 create table trigger_extra_args (nr int4 primary key, col1 text, col2 text);
+create trigger extra_trig_0 after insert or update or delete on trigger_extra_args
+for each row execute procedure pgq.jsontriga('jsontriga',
+    'ev_extra1=(nr+3)::text', 'ev_extra2=col1||col2',
+    'ev_extra3=$$333$$', 'ev_extra4=$$444$$', 'ev_type=$$badidea$$');
 create trigger extra_trig_1 after insert or update or delete on trigger_extra_args
 for each row execute procedure pgq.logutriga('logutriga',
     'ev_extra1=(nr+3)::text', 'ev_extra2=col1||col2',
@@ -19,14 +23,17 @@ for each row execute procedure pgq.sqltriga('sqltriga',
     'ev_extra3=$$333$$', 'ev_extra4=$$444$$', 'ev_type=$$badidea$$');
 -- test insert
 insert into trigger_extra_args values (1, 'col1', 'col2');
+WARNING:  insert_event(q=[jsontriga], t=[badidea], d=[{"nr":1,"col1":"col1","col2":"col2"}], 1=[4], 2=[col1col2], 3=[333], 4=[444])
 WARNING:  insert_event(q=[logutriga], t=[badidea], d=[nr=1&col1=col1&col2=col2], 1=[4], 2=[col1col2], 3=[333], 4=[444])
 WARNING:  insert_event(q=[sqltriga], t=[badidea], d=[(nr,col1,col2) values ('1','col1','col2')], 1=[4], 2=[col1col2], 3=[333], 4=[444])
 -- test update
 update trigger_extra_args set col1 = 'col1x', col2='col2x' where nr=1;
+WARNING:  insert_event(q=[jsontriga], t=[badidea], d=[{"nr":1,"col1":"col1x","col2":"col2x"}], 1=[4], 2=[col1xcol2x], 3=[333], 4=[444])
 WARNING:  insert_event(q=[logutriga], t=[badidea], d=[nr=1&col1=col1x&col2=col2x], 1=[4], 2=[col1xcol2x], 3=[333], 4=[444])
 WARNING:  insert_event(q=[sqltriga], t=[badidea], d=[col1='col1x',col2='col2x' where nr='1'], 1=[4], 2=[col1xcol2x], 3=[333], 4=[444])
 -- test delete
 delete from trigger_extra_args where nr=1;
+WARNING:  insert_event(q=[jsontriga], t=[badidea], d=[{"nr":1,"col1":"col1x","col2":"col2x"}], 1=[4], 2=[col1xcol2x], 3=[333], 4=[444])
 WARNING:  insert_event(q=[logutriga], t=[badidea], d=[nr=1&col1=col1x&col2=col2x], 1=[4], 2=[col1xcol2x], 3=[333], 4=[444])
 WARNING:  insert_event(q=[sqltriga], t=[badidea], d=[nr='1'], 1=[4], 2=[col1xcol2x], 3=[333], 4=[444])
 -- restore

@@ -12,6 +12,8 @@ $$ language plpgsql;
 
 create table trigger_pkey (nr int4, col1 text, col2 text);
 
+create trigger pkey_trig_0 after insert or update or delete on trigger_pkey
+for each row execute procedure pgq.jsontriga('jsontriga', 'pkey=nr,col1');
 create trigger pkey_trig_1 after insert or update or delete on trigger_pkey
 for each row execute procedure pgq.logutriga('logutriga', 'pkey=nr,col1');
 create trigger pkey_trig_2 after insert or update or delete on trigger_pkey

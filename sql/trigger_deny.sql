@@ -11,26 +11,34 @@ end;
 $$ language plpgsql;
 
 -- create tables with data
+create table jsontriga_deny (dat1 text primary key);
 create table logutriga_deny (dat1 text primary key);
 create table sqltriga_deny (dat1 text primary key);
+insert into jsontriga_deny values ('a');
 insert into logutriga_deny values ('a');
 insert into sqltriga_deny values ('a');
 
 -- create triggers
+create trigger deny_trig after insert or update or delete on jsontriga_deny
+for each row execute procedure pgq.jsontriga('jsontriga', 'deny');
 create trigger deny_trig after insert or update or delete on logutriga_deny
 for each row execute procedure pgq.logutriga('logutriga', 'deny');
 create trigger deny_trig after insert or update or delete on sqltriga_deny
 for each row execute procedure pgq.sqltriga('sqltriga', 'deny');
 
 -- see what happens
+insert into jsontriga_deny values ('b');
 insert into logutriga_deny values ('b');
 insert into sqltriga_deny values ('b');
+update jsontriga_deny set dat1 = 'c';
 update logutriga_deny set dat1 = 'c';
 update sqltriga_deny set dat1 = 'c';
+delete from jsontriga_deny;
 delete from logutriga_deny;
 delete from sqltriga_deny;
 
 -- restore
+drop table jsontriga_deny;
 drop table logutriga_deny;
 drop table sqltriga_deny;
 \set ECHO none

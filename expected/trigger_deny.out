@@ -9,29 +9,40 @@ begin
 end;
 $$ language plpgsql;
 -- create tables with data
+create table jsontriga_deny (dat1 text primary key);
 create table logutriga_deny (dat1 text primary key);
 create table sqltriga_deny (dat1 text primary key);
+insert into jsontriga_deny values ('a');
 insert into logutriga_deny values ('a');
 insert into sqltriga_deny values ('a');
 -- create triggers
+create trigger deny_trig after insert or update or delete on jsontriga_deny
+for each row execute procedure pgq.jsontriga('jsontriga', 'deny');
 create trigger deny_trig after insert or update or delete on logutriga_deny
 for each row execute procedure pgq.logutriga('logutriga', 'deny');
 create trigger deny_trig after insert or update or delete on sqltriga_deny
 for each row execute procedure pgq.sqltriga('sqltriga', 'deny');
 -- see what happens
+insert into jsontriga_deny values ('b');
+ERROR:  Table 'public.jsontriga_deny' to queue 'jsontriga': change not allowed (INSERT)
 insert into logutriga_deny values ('b');
-ERROR:  Table 'public.logutriga_deny' to queue 'logutriga': change not allowed (I)
+ERROR:  Table 'public.logutriga_deny' to queue 'logutriga': change not allowed (INSERT)
 insert into sqltriga_deny values ('b');
-ERROR:  Table 'public.sqltriga_deny' to queue 'sqltriga': change not allowed (I)
+ERROR:  Table 'public.sqltriga_deny' to queue 'sqltriga': change not allowed (INSERT)
+update jsontriga_deny set dat1 = 'c';
+ERROR:  Table 'public.jsontriga_deny' to queue 'jsontriga': change not allowed (UPDATE)
 update logutriga_deny set dat1 = 'c';
-ERROR:  Table 'public.logutriga_deny' to queue 'logutriga': change not allowed (U)
+ERROR:  Table 'public.logutriga_deny' to queue 'logutriga': change not allowed (UPDATE)
 update sqltriga_deny set dat1 = 'c';
-ERROR:  Table 'public.sqltriga_deny' to queue 'sqltriga': change not allowed (U)
+ERROR:  Table 'public.sqltriga_deny' to queue 'sqltriga': change not allowed (UPDATE)
+delete from jsontriga_deny;
+ERROR:  Table 'public.jsontriga_deny' to queue 'jsontriga': change not allowed (DELETE)
 delete from logutriga_deny;
-ERROR:  Table 'public.logutriga_deny' to queue 'logutriga': change not allowed (D)
+ERROR:  Table 'public.logutriga_deny' to queue 'logutriga': change not allowed (DELETE)
 delete from sqltriga_deny;
-ERROR:  Table 'public.sqltriga_deny' to queue 'sqltriga': change not allowed (D)
+ERROR:  Table 'public.sqltriga_deny' to queue 'sqltriga': change not allowed (DELETE)
 -- restore
+drop table jsontriga_deny;
 drop table logutriga_deny;
 drop table sqltriga_deny;
 \set ECHO none

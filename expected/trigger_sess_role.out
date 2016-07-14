@@ -13,6 +13,12 @@ begin
     return ev_id;
 end;
 $$ language plpgsql;
+select pgq.create_queue('jsontriga_role');
+ create_queue 
+--------------
+            1
+(1 row)
+
 select pgq.create_queue('logutriga_role');
  create_queue 
 --------------
@@ -25,11 +31,15 @@ select pgq.create_queue('sqltriga_role');
             1
 (1 row)
 
+update pgq.queue set queue_disable_insert = true where queue_name = 'jsontriga_role';
 update pgq.queue set queue_disable_insert = true where queue_name = 'logutriga_role';
 update pgq.queue set queue_disable_insert = true where queue_name = 'sqltriga_role';
 -- create tables
+create table jsontriga_role (dat1 text primary key);
 create table logutriga_role (dat1 text primary key);
 create table sqltriga_role (dat1 text primary key);
+create trigger trig after insert or update or delete on jsontriga_role
+for each row execute procedure pgq.jsontriga('jsontriga_role');
 create trigger trig after insert or update or delete on logutriga_role
 for each row execute procedure pgq.logutriga('logutriga_role');
 create trigger trig after insert or update or delete on sqltriga_role
@@ -41,6 +51,9 @@ show session_replication_role;
  origin
 (1 row)
 
+insert into jsontriga_role values ('a');
+WARNING:  calling insert_event_raw
+ERROR:  Insert into queue disallowed
 insert into logutriga_role values ('a');
 WARNING:  calling insert_event_raw
 ERROR:  Insert into queue disallowed
@@ -55,6 +68,7 @@ show session_replication_role;
  local
 (1 row)
 
+insert into jsontriga_role values ('b');
 insert into logutriga_role values ('b');
 insert into sqltriga_role values ('b');
 -- replica: silence, trigger does not call insert_event
@@ -65,8 +79,16 @@ show session_replication_role;
  replica
 (1 row)
 
+insert into jsontriga_role values ('c');
 insert into logutriga_role values ('c');
 insert into sqltriga_role values ('c');
+select * from jsontriga_role;
+ dat1 
+------
+ b
+ c
+(2 rows)
+
 select * from logutriga_role;
  dat1 
 ------
@@ -83,8 +105,15 @@ select * from sqltriga_role;
 
 -- restore
 set session_replication_role = 'origin';
+drop table jsontriga_role;
 drop table logutriga_role;
 drop table sqltriga_role;
+select pgq.drop_queue('jsontriga_role');
+ drop_queue 
+------------
+          1
+(1 row)
+
 select pgq.drop_queue('logutriga_role');
  drop_queue 
 ------------

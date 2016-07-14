@@ -14,58 +14,81 @@ create table trigger_base (
     txt text,
     val float
 );
+create trigger base_trig_0 after insert or update or delete on trigger_base
+for each row execute procedure pgq.jsontriga('jsontriga');
 create trigger base_trig_1 after insert or update or delete on trigger_base
 for each row execute procedure pgq.logutriga('logutriga');
 create trigger base_trig_2 after insert or update or delete on trigger_base
 for each row execute procedure pgq.sqltriga('sqltriga');
 insert into trigger_base (txt) values ('text1');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","trigger_base"],"pkey":["id"]}], d=[{"id":1,"txt":"text1","val":null}], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[I:id], d=[id=1&txt=text1&val], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[I], d=[(id,txt,val) values ('1','text1',null)], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 insert into trigger_base (val) values (1.5);
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","trigger_base"],"pkey":["id"]}], d=[{"id":2,"txt":null,"val":"1.5"}], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[I:id], d=[id=2&txt&val=1.5], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[I], d=[(id,txt,val) values ('2',null,'1.5')], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 update trigger_base set txt='text2' where id=1;
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"UPDATE","table":["public","trigger_base"],"pkey":["id"]}], d=[{"id":1,"txt":"text2","val":null}], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[U:id], d=[id=1&txt=text2&val], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[U], d=[txt='text2' where id='1'], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 delete from trigger_base where id=2;
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"DELETE","table":["public","trigger_base"],"pkey":["id"]}], d=[{"id":2,"txt":null,"val":"1.5"}], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[logutriga], t=[D:id], d=[id=2&txt&val=1.5], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 WARNING:  insert_event(q=[sqltriga], t=[D], d=[id='2'], 1=[public.trigger_base], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 -- test missing pkey
+create table trigger_nopkey_jsontriga (dat text);
 create table trigger_nopkey_logutriga (dat text);
 create table trigger_nopkey_sqltriga (dat text);
+create trigger nopkey after insert or update or delete on trigger_nopkey_jsontriga
+for each row execute procedure pgq.jsontriga('jsontriga');
 create trigger nopkey after insert or update or delete on trigger_nopkey_logutriga
 for each row execute procedure pgq.logutriga('logutriga');
 create trigger nopkey after insert or update or delete on trigger_nopkey_sqltriga
 for each row execute procedure pgq.sqltriga('sqltriga');
+insert into trigger_nopkey_jsontriga values ('foo');
+WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","trigger_nopkey_jsontriga"],"pkey":[]}], d=[{"dat":"foo"}], 1=[public.trigger_nopkey_jsontriga], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 insert into trigger_nopkey_logutriga values ('foo');
 WARNING:  insert_event(q=[logutriga], t=[I:], d=[dat=foo], 1=[public.trigger_nopkey_logutriga], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
 insert into trigger_nopkey_sqltriga values ('foo');
 WARNING:  insert_event(q=[sqltriga], t=[I], d=[(dat) values ('foo')], 1=[public.trigger_nopkey_sqltriga], 2=[<NULL>], 3=[<NULL>], 4=[<NULL>])
+update trigger_nopkey_jsontriga set dat = 'bat';
+ERROR:  Update/Delete on table without pkey
 update trigger_nopkey_logutriga set dat = 'bat';
 ERROR:  Update/Delete on table without pkey
 update trigger_nopkey_sqltriga set dat = 'bat';
+ERROR:  Update/Delete on table without pkey
+delete from trigger_nopkey_jsontriga;
 ERROR:  Update/Delete on table without pkey
 delete from trigger_nopkey_logutriga;
 ERROR:  Update/Delete on table without pkey
 delete from trigger_nopkey_sqltriga;
 ERROR:  Update/Delete on table without pkey
 -- test invalid pk update
+create table trigger_pkey_jsontriga (id int4 primary key);
 create table trigger_pkey_logutriga (id int4 primary key);
 create table trigger_pkey_sqltriga (id int4 primary key);
+insert into trigger_pkey_jsontriga values (1);
 insert into trigger_pkey_logutriga values (1);
 insert into trigger_pkey_sqltriga values (1);
+create trigger nopkey after insert or update or delete on trigger_pkey_jsontriga
+for each row execute procedure pgq.jsontriga('jsontriga');
 create trigger nopkey after insert or update or delete on trigger_pkey_logutriga
 for each row execute procedure pgq.logutriga('logutriga');
 create trigger nopkey after insert or update or delete on trigger_pkey_sqltriga
 for each row execute procedure pgq.sqltriga('sqltriga');
+update trigger_pkey_jsontriga set id = 6;
+ERROR:  primary key update not allowed
 update trigger_pkey_logutriga set id = 6;
 ERROR:  primary key update not allowed
 update trigger_pkey_sqltriga set id = 6;
 ERROR:  primary key update not allowed
 -- restore
 drop table trigger_base;
+drop table trigger_nopkey_jsontriga;
 drop table trigger_nopkey_logutriga;
 drop table trigger_nopkey_sqltriga;
+drop table trigger_pkey_jsontriga;
 drop table trigger_pkey_logutriga;
 drop table trigger_pkey_sqltriga;
 \set ECHO none
