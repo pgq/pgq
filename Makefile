@@ -49,10 +49,10 @@ triggers/pgq_triggers.sql: sub-all
 PLONLY_SRCS = lowlevel_pl/insert_event.sql lowlevel_pl/logutriga.sql lowlevel_pl/sqltriga.sql
 
 pgq_pl_only.sql: $(SRCS) $(PLONLY_SRCS)
-	$(CATSQL) structure/install_pl.sql > $@
+	$(CATSQL) structure/install_pl.sql $(GRANT_SQL) > $@
 
 pgq_pl_only.upgrade.sql: $(SRCS) $(PLONLY_SRCS)
-	$(CATSQL) structure/upgrade_pl.sql > $@
+	$(CATSQL) structure/upgrade_pl.sql $(GRANT_SQL) > $@
 
 plonly: pgq_pl_only.sql pgq_pl_only.upgrade.sql
 

@@ -46,9 +46,11 @@ REGRESS_OPTS = --load-language=plpgsql --dbname=$(CONTRIB_TESTDB)
 # Calculate actual sql files
 #
 
+GRANT_SQL = structure/newgrants_$(EXTENSION).sql
+
 SQLS  = $(shell $(AWK) '/^\\i / { print $$2; }' structure/install.sql)
 FUNCS = $(shell $(AWK) '/^\\i / { print $$2; }' $(SQLS))
-SRCS = $(SQLS) $(FUNCS)
+SRCS = $(SQLS) $(FUNCS) $(GRANT_SQL)
 
 #
 # load PGXS
@@ -118,10 +120,10 @@ $(EXTENSION)--unpackaged--$(EXT_VERSION).sql: $(EXTENSION).upgrade.sql structure
 	$(CATSQL) $^ > $@
 
 $(EXTENSION).sql: $(SRCS)
-	$(CATSQL) structure/install.sql > $@
+	$(CATSQL) structure/install.sql $(GRANT_SQL) > $@
 
 $(EXTENSION).upgrade.sql: $(SRCS)
-	$(CATSQL) structure/upgrade.sql > $@
+	$(CATSQL) structure/upgrade.sql $(GRANT_SQL) > $@
 
 ifneq ($(Extension_upgrade_files),)
 $(Extension_upgrade_files): $(EXTENSION).upgrade.sql
@@ -129,7 +131,7 @@ $(Extension_upgrade_files): $(EXTENSION).upgrade.sql
 endif
 
 structure/newgrants_$(EXTENSION).sql: structure/grants.ini
-	$(GRANTFU) -t -r -d $< > $@
+	$(GRANTFU) -r -d $< > $@
 
 structure/oldgrants_$(EXTENSION).sql: structure/grants.ini structure/grants.sql
 	echo "begin;" > $@
