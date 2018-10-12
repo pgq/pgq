@@ -1,3 +1,8 @@
+#if PG_VERSION_NUM < 100000
+/* from src/include/access/tupdesc.h, introduced in 2cd708452 */
+#define TupleDescAttr(tupdesc, i) ((tupdesc)->attrs[(i)])
+#endif
+
 enum PgqFields {
 	EV_TYPE = 0,
 	EV_DATA,

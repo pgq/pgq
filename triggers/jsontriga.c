@@ -164,7 +164,7 @@ static void pgq_jsonenc_row(PgqTriggerEvent *ev, HeapTuple row, StringInfo buf)
 	appendStringInfoChar(buf, '{');
 	for (i = 0; i < tg->tg_relation->rd_att->natts; i++) {
 		/* Skip dropped columns */
-		if (tupdesc->attrs[i]->attisdropped)
+		if (TupleDescAttr(tupdesc, i)->attisdropped)
 			continue;
 
 		attkind_idx++;
@@ -183,7 +183,7 @@ static void pgq_jsonenc_row(PgqTriggerEvent *ev, HeapTuple row, StringInfo buf)
 		appendStringInfoChar(buf, ':');
 
 		/* quote column value */
-		col_type = tupdesc->attrs[i]->atttypid;
+		col_type = TupleDescAttr(tupdesc, i)->atttypid;
 		col_datum = SPI_getbinval(row, tupdesc, i + 1, &isnull);
 		col_value = NULL;
 		if (isnull) {
