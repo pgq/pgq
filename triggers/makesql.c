@@ -71,7 +71,7 @@ static void process_insert(PgqTriggerEvent *ev, StringInfo sql)
 		char *col_ident;
 
 		/* Skip dropped columns */
-		if (tupdesc->attrs[i]->attisdropped)
+		if (TupleDescAttr(tupdesc, i)->attisdropped)
 			continue;
 
 		/* Check if allowed by colstring */
@@ -103,7 +103,7 @@ static void process_insert(PgqTriggerEvent *ev, StringInfo sql)
 		char *col_value;
 
 		/* Skip dropped columns */
-		if (tupdesc->attrs[i]->attisdropped)
+		if (TupleDescAttr(tupdesc, i)->attisdropped)
 			continue;
 
 		/* Check if allowed by colstring */
@@ -154,7 +154,7 @@ static int process_update(PgqTriggerEvent *ev, StringInfo sql)
 		/*
 		 * Ignore dropped columns
 		 */
-		if (tupdesc->attrs[i]->attisdropped)
+		if (TupleDescAttr(tupdesc, i)->attisdropped)
 			continue;
 
 		attkind_idx++;
@@ -240,7 +240,7 @@ static int process_update(PgqTriggerEvent *ev, StringInfo sql)
 			return 0;
 
 		for (i = 0, attkind_idx = -1; i < tupdesc->natts; i++) {
-			if (tupdesc->attrs[i]->attisdropped)
+			if (TupleDescAttr(tupdesc, i)->attisdropped)
 				continue;
 
 			attkind_idx++;
@@ -259,7 +259,7 @@ static int process_update(PgqTriggerEvent *ev, StringInfo sql)
 		/*
 		 * Ignore dropped columns
 		 */
-		if (tupdesc->attrs[i]->attisdropped)
+		if (TupleDescAttr(tupdesc, i)->attisdropped)
 			continue;
 
 		attkind_idx++;
@@ -291,7 +291,7 @@ static void process_delete(PgqTriggerEvent *ev, StringInfo sql)
 	int attkind_idx;
 
 	for (i = 0, attkind_idx = -1; i < tupdesc->natts; i++) {
-		if (tupdesc->attrs[i]->attisdropped)
+		if (TupleDescAttr(tupdesc, i)->attisdropped)
 			continue;
 
 		attkind_idx++;
@@ -323,7 +323,7 @@ int pgqtriga_make_sql(PgqTriggerEvent *ev, StringInfo sql)
 	 * Count number of active columns
 	 */
 	for (i = 0, attcnt = 0; i < tupdesc->natts; i++) {
-		if (tupdesc->attrs[i]->attisdropped)
+		if (TupleDescAttr(tupdesc, i)->attisdropped)
 			continue;
 		attcnt++;
 	}
