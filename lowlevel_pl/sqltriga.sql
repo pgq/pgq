@@ -197,7 +197,7 @@ begin
             end if;
 
             if attr.atttypid = 'boolean'::regtype::oid then
-                valexp := 'case r.' || qcol || ' when true then ''t'' else ''f'' end';
+                valexp := 'case r.' || qcol || ' when true then ''t'' when false then ''f'' else null end';
             else
                 valexp := 'r.' || qcol || '::text';
             end if;
