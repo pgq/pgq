@@ -3,6 +3,7 @@ set client_min_messages = 'warning';
 set DateStyle = 'ISO, YMD';
 set timezone = 'UTC';
 set bytea_output = 'hex';
+set extra_float_digits = 0;
 \set ECHO none
 select typetest('text', null);
 WARNING:  insert_event(q=[jsontriga], t=[{"op":"INSERT","table":["public","ttest"],"pkey":[]}], d=[{"nr":1,"val":null,"arr":"{NULL,NULL}"}])

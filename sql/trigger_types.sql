@@ -3,6 +3,7 @@ set client_min_messages = 'warning';
 set DateStyle = 'ISO, YMD';
 set timezone = 'UTC';
 set bytea_output = 'hex';
+set extra_float_digits = 0;
 
 \set ECHO none
 
@@ -47,6 +48,8 @@ begin
     */
 
     execute 'drop table ttest';
+exception when invalid_text_representation then
+    raise exception 'invalid input syntax for type %: "%"', typ, val;
 end;
 $$ language plpgsql;
 

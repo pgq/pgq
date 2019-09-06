@@ -196,7 +196,9 @@ static int process_update(PgqTriggerEvent *ev, StringInfo sql)
 			 * attributes and do string comparison.
 			 */
 			if (OidIsValid(opr_oid)) {
-				if (DatumGetBool(FunctionCall2(opr_finfo_p, old_value, new_value)))
+				if (DatumGetBool(FunctionCall2Coll(opr_finfo_p,
+								   TupleDescAttr(tupdesc, i)->attcollation,
+								   old_value, new_value)))
 					continue;
 			} else {
 				char *old_strval = SPI_getvalue(old_row, tupdesc, i + 1);
