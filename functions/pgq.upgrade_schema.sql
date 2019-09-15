@@ -43,7 +43,7 @@ begin
         alter table pgq.queue add column queue_extra_maint text[];
     end if;
 
-    return cnt;
+    return 0;
 end;
 $$ language plpgsql;
 
