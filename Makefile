@@ -1,8 +1,8 @@
 
 EXTENSION = pgq
 
-EXT_VERSION = 3.2.6
-EXT_OLD_VERSIONS = 3.1 3.1.1 3.1.2 3.1.3 3.1.6 3.2 3.2.3
+EXT_VERSION = 3.3
+EXT_OLD_VERSIONS = 3.2 3.2.3 3.2.6
 
 PGQ_TESTS = pgq_core pgq_core_disabled pgq_core_tx_limit \
 	    pgq_session_role pgq_perms \
@@ -79,4 +79,8 @@ deb:
 
 debclean:
 	make -f debian/rules debclean
+
+TARNAME = $(EXTENSION)-$(EXT_VERSION)
+dist:
+	git archive --format=tar.gz --prefix=$(TARNAME)/ -o $(TARNAME).tar.gz HEAD
 

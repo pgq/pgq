@@ -26,3 +26,8 @@ pgq.upgrade.sql
 
 results/
 /*.sql
+
+docs/Data
+docs/html
+docs/sql
+
