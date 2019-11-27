@@ -4,6 +4,7 @@
 *.swp
 *.dump
 *--*
+*.gz
 
 sql/*/*.sql
 sql/*/results
