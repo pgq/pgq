@@ -1,0 +1,24 @@
+
+1) Add news to NEWS
+
+2) Bump version in 
+
+* .control
+* Makefile
+* debian/changelog
+
+3) commit, but not tag
+
+4) Create tarball with:
+
+	make dist
+
+5) Create relase on github:
+
+* new release
+  tag: vX.Y
+  name: pgq-X.Y
+
+* attach created tarball
+* paste NEWS
+
