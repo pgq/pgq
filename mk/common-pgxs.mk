@@ -62,7 +62,7 @@ include $(PGXS)
 
 # when compiling locally and with postgres without python,
 # the variable may be empty
-PYTHON := $(if $(PYTHON),$(PYTHON),python3)
+PYTHON3 := $(if $(PYTHON3),$(PYTHON3),python3)
 
 #
 # common tools
@@ -70,8 +70,8 @@ PYTHON := $(if $(PYTHON),$(PYTHON),python3)
 
 NDOC = NaturalDocs
 NDOCARGS = -r -o html docs/html -p docs -i docs/sql
-CATSQL = $(PYTHON) mk/catsql.py
-GRANTFU = $(PYTHON) mk/grantfu.py
+CATSQL = $(PYTHON3) mk/catsql.py
+GRANTFU = $(PYTHON3) mk/grantfu.py
 
 #
 # build rules, in case Contrib data must be always installed
