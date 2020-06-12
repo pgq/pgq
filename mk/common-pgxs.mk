@@ -62,7 +62,7 @@ include $(PGXS)
 
 # when compiling locally and with postgres without python,
 # the variable may be empty
-PYTHON := $(if $(PYTHON),$(PYTHON),python)
+PYTHON := $(if $(PYTHON),$(PYTHON),python3)
 
 #
 # common tools
