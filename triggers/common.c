@@ -18,6 +18,7 @@
 
 #include <postgres.h>
 
+#include <access/hash.h>
 #include <commands/trigger.h>
 #include <catalog/pg_type.h>
 #include <catalog/pg_namespace.h>

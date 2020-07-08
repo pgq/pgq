@@ -40,7 +40,7 @@ EXTRA_CLEAN += $(call IfExt,$(Contrib_data_built),$(Extension_data_built)) test.
 
 # have deterministic dbname for regtest database
 override CONTRIB_TESTDB = regression
-REGRESS_OPTS = --load-language=plpgsql --dbname=$(CONTRIB_TESTDB)
+REGRESS_OPTS = --dbname=$(CONTRIB_TESTDB)
 
 #
 # Calculate actual sql files

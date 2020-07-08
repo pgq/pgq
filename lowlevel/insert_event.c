@@ -19,6 +19,7 @@
 #include "postgres.h"
 #include "funcapi.h"
 
+#include "access/hash.h"
 #include "catalog/pg_type.h"
 #include "commands/trigger.h"
 #include "executor/spi.h"

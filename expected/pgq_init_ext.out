@@ -1,17 +1,9 @@
--- create noext schema
 \set ECHO none
- upgrade_schema 
-----------------
-              0
-(1 row)
-
  create_queue 
 --------------
             1
 (1 row)
 
--- convert to extension
-create extension pgq from 'unpackaged';
 select array_length(extconfig, 1) from pg_catalog.pg_extension where extname = 'pgq';
  array_length 
 --------------
@@ -37,7 +29,7 @@ select pgq.drop_queue('testqueue1');
           1
 (1 row)
 
--- drop schema failure
+-- drop extension
 drop extension pgq;
 -- create clean schema
 create extension pgq;
