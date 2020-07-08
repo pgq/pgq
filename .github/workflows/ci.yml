@@ -1,0 +1,75 @@
+#
+# https://docs.github.com/en/actions
+# https://github.com/actions
+#
+
+name: CI
+
+on:
+  pull_request: {}
+  push: {}
+
+jobs:
+
+  linux:
+    name: "Linux + PostgreSQL ${{matrix.PGVER}}"
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        PGVER:
+          - 10
+          - 11
+          - 12
+          - 13
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "InstallDB"
+        run: |
+          echo "::group::apt-get-update"
+          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main ${{matrix.PGVER}}" \
+          | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo -nH apt-get -q update
+          echo "::endgroup::"
+
+          echo "::group::apt-get-install"
+
+          # disable new cluster creation
+          sudo -nH mkdir -p /etc/postgresql-common/createcluster.d
+          echo "create_main_cluster = false" | sudo -nH tee /etc/postgresql-common/createcluster.d/no-main.conf
+
+          sudo -nH apt-get -qyu install \
+            postgresql-${{matrix.PGVER}} \
+            postgresql-server-dev-${{matrix.PGVER}} \
+            libpq-dev patchutils
+          echo "::endgroup::"
+
+          # tune environment
+          echo "::add-path::/usr/lib/postgresql/${{matrix.PGVER}}/bin"
+          echo "::set-env name=PGHOST::/tmp"
+
+          dpkg -l postgres\* libpq\* bison\* flex\* gcc\* clang\* libllvm\*
+
+      - name: "Build"
+        run: make
+
+      - name: "Install"
+        run: sudo -nH bash -c "PATH='${PATH}' make install"
+
+      - name: "StartDB"
+        run: |
+          rm -rf data log
+          mkdir -p log
+          LANG=C initdb data
+          sed -ri -e "s,^[# ]*(unix_socket_directories).*,\\1='/tmp'," data/postgresql.conf
+          pg_ctl -D data -l log/pg.log start || { cat log/pg.log ; exit 1; }
+
+      - name: "Test"
+        run: make citest
+
+      - name: "StopDB"
+        run: |
+          pg_ctl -D data stop
+          rm -rf data log /tmp/.s.PGSQL*
+
