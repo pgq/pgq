@@ -99,7 +99,7 @@ test: install
 	$(MAKE) installcheck || { filterdiff --format=unified regression.diffs | less; exit 1; }
 	pg_dump regression > test.dump
 
-citest:
+citest: checkver
 	$(MAKE) installcheck || { filterdiff --format=unified regression.diffs; exit 1; }
 
 ack:
@@ -141,4 +141,24 @@ structure/oldgrants_$(EXTENSION).sql: structure/grants.ini structure/grants.sql
 	$(GRANTFU) -R -o $< >> $@
 	cat structure/grants.sql >> $@
 	echo "commit;" >> $@
+
+checkver:
+	@echo "Checking version numbers"
+	@grep -q "^default_version *= *'$(EXT_VERSION)'" $(EXTENSION).control \
+		|| { echo "ERROR: $(EXTENSION).control has wrong version"; exit 1; }
+	@test -f "docs/notes/v$(EXT_VERSION).md" \
+		|| { echo "ERROR: notes missing: docs/notes/v$(EXT_VERSION).md"; exit 1; }
+	@head debian/changelog | grep -q "[(]$(EXT_VERSION)-" debian/changelog \
+		|| { echo "ERROR: debian/changelog has wrong version"; exit 1; }
+
+all: checkver
+
+TARNAME = $(EXTENSION)-$(EXT_VERSION)
+dist: checkver
+	git archive --format=tar.gz --prefix=$(TARNAME)/ -o $(TARNAME).tar.gz HEAD
+
+release: checkver
+	git tag v$(EXT_VERSION)
+	git push github
+	git push github --tag
 

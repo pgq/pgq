@@ -12,15 +12,11 @@ on:
 jobs:
 
   linux:
-    name: "Linux + PostgreSQL ${{matrix.PGVER}}"
+    name: "Ubuntu 18.04 + PostgreSQL ${{matrix.PGVER}}"
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        PGVER:
-          - 10
-          - 11
-          - 12
-          - 13
+        PGVER: [10, 11, 12, 13]
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
