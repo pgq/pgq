@@ -1,0 +1,52 @@
+
+name: REL
+
+on:
+  push:
+    tags: ["v[0-9]*"]
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        id: checkout
+        uses: actions/checkout@v2
+
+      - name: Build tarball
+        id: build
+        run: |
+          make checkver
+          make dist
+          EXTENSION=$(grep ^EXTENSION Makefile | sed 's/.*= *//')
+          EXT_VERSION=$(grep ^EXT_VERSION Makefile | sed 's/.*= *//')
+          test "${{github.ref}}" = "refs/tags/v${EXT_VERSION}" || { echo "ERR: tag mismatch"; exit 1; }
+          echo "::set-env name=EXTENSION::${EXTENSION}"
+          echo "::set-env name=EXT_VERSION::${EXT_VERSION}"
+          echo "::set-env name=TGZ::${EXTENSION}-${EXT_VERSION}.tar.gz"
+
+      - name: Create release
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          tag_name: ${{github.ref}}
+          release_name: ${{github.event.repository.name}} v${{env.EXT_VERSION}}
+          body_path: docs/notes/v${{env.EXT_VERSION}}.md
+          draft: false
+          prerelease: false
+
+      - name: Upload source
+        id: upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          upload_url: ${{steps.release.outputs.upload_url}}
+          asset_path: ${{env.TGZ}}
+          asset_name: ${{env.TGZ}}
+          asset_content_type: application/x-gzip
+
