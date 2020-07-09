@@ -3,11 +3,14 @@ returns text as $$
 -- ----------------------------------------------------------------------
 -- Function: pgq.version(0)
 --
---      Returns version string for pgq.  ATM it is based on SkyTools
---      version and only bumped when database code changes.
+--      Returns version string for pgq.
 -- ----------------------------------------------------------------------
+declare
+    _vers text;
 begin
-    return '3.2.6';
+    select extversion from pg_catalog.pg_extension
+        where extname = 'pgq' into _vers;
+    return _vers;
 end;
 $$ language plpgsql;
 
