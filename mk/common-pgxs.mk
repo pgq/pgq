@@ -160,5 +160,5 @@ dist: checkver
 release: checkver
 	git tag v$(EXT_VERSION)
 	git push github
-	git push github --tag
+	git push github v$(EXT_VERSION):v$(EXT_VERSION)
 
