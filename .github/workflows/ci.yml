@@ -43,7 +43,7 @@ jobs:
 
           # tune environment
           echo "/usr/lib/postgresql/${{matrix.PGVER}}/bin" >> $GITHUB_PATH
-          echo "PGHOST=/tmp" >> $GITHIB_ENV
+          echo "PGHOST=/tmp" >> $GITHUB_ENV
 
           dpkg -l postgres\* libpq\* bison\* flex\* gcc\* clang\* libllvm\*
 
