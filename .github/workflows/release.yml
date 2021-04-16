@@ -23,9 +23,9 @@ jobs:
           EXTENSION=$(grep ^EXTENSION Makefile | sed 's/.*= *//')
           EXT_VERSION=$(grep ^EXT_VERSION Makefile | sed 's/.*= *//')
           test "${{github.ref}}" = "refs/tags/v${EXT_VERSION}" || { echo "ERR: tag mismatch"; exit 1; }
-          echo "::set-env name=EXTENSION::${EXTENSION}"
-          echo "::set-env name=EXT_VERSION::${EXT_VERSION}"
-          echo "::set-env name=TGZ::${EXTENSION}-${EXT_VERSION}.tar.gz"
+          echo "EXTENSION=${EXTENSION}" >> $GITHUB_ENV
+          echo "EXT_VERSION=${EXT_VERSION}" >> $GITHUB_ENV
+          echo "TGZ=${EXTENSION}-${EXT_VERSION}.tar.gz" >> $GITHUB_ENV
 
       - name: Create release
         id: release

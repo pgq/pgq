@@ -42,8 +42,8 @@ jobs:
           echo "::endgroup::"
 
           # tune environment
-          echo "::add-path::/usr/lib/postgresql/${{matrix.PGVER}}/bin"
-          echo "::set-env name=PGHOST::/tmp"
+          echo "/usr/lib/postgresql/${{matrix.PGVER}}/bin" >> $GITHUB_PATH
+          echo "PGHOST=/tmp" >> $GITHIB_ENV
 
           dpkg -l postgres\* libpq\* bison\* flex\* gcc\* clang\* libllvm\*
 
