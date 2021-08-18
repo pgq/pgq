@@ -97,7 +97,7 @@ endif
 
 test: install
 	$(MAKE) installcheck || { filterdiff --format=unified regression.diffs | less; exit 1; }
-	pg_dump regression > test.dump
+	pg_dump regression > test.dump || true
 
 citest: checkver
 	$(MAKE) installcheck || { filterdiff --format=unified regression.diffs; exit 1; }
