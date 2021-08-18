@@ -285,6 +285,7 @@ Datum pgq_jsontriga(PG_FUNCTION_ARGS)
 	TriggerData *tg;
 	struct PgqTriggerEvent ev;
 	HeapTuple row;
+	bool skip = false;
 
 	/*
 	 * Get the trigger call context
@@ -308,6 +309,7 @@ Datum pgq_jsontriga(PG_FUNCTION_ARGS)
 		elog(ERROR, "logutriga: SPI_connect() failed");
 
 	pgq_prepare_event(&ev, tg, true);
+	skip = ev.tgargs->skip;
 
 	appendStringInfoString(ev.field[EV_EXTRA1], ev.info->table_name);
 
@@ -333,7 +335,7 @@ Datum pgq_jsontriga(PG_FUNCTION_ARGS)
 	 * before trigger skips event if NULL.
 	 */
 skip_it:
-	if (TRIGGER_FIRED_AFTER(tg->tg_event) || ev.tgargs->skip)
+	if (TRIGGER_FIRED_AFTER(tg->tg_event) || skip)
 		return PointerGetDatum(NULL);
 	else
 		return PointerGetDatum(row);

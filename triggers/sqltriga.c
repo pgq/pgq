@@ -41,6 +41,7 @@ Datum pgq_sqltriga(PG_FUNCTION_ARGS)
 {
 	TriggerData *tg;
 	PgqTriggerEvent ev;
+	bool skip = false;
 
 	/*
 	 * Get the trigger call context
@@ -60,6 +61,7 @@ Datum pgq_sqltriga(PG_FUNCTION_ARGS)
 		elog(ERROR, "sqltriga: SPI_connect() failed");
 
 	pgq_prepare_event(&ev, tg, true);
+	skip = ev.tgargs->skip;
 
 	appendStringInfoChar(ev.field[EV_TYPE], ev.op_type);
 	appendStringInfoString(ev.field[EV_EXTRA1], ev.info->table_name);
@@ -78,7 +80,7 @@ Datum pgq_sqltriga(PG_FUNCTION_ARGS)
 	 * before trigger skips event if NULL.
 	 */
 skip_it:
-	if (TRIGGER_FIRED_AFTER(tg->tg_event) || ev.tgargs->skip)
+	if (TRIGGER_FIRED_AFTER(tg->tg_event) || skip)
 		return PointerGetDatum(NULL);
 	else if (TRIGGER_FIRED_BY_UPDATE(tg->tg_event))
 		return PointerGetDatum(tg->tg_newtuple);
