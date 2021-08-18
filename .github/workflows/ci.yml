@@ -12,8 +12,8 @@ on:
 jobs:
 
   linux:
-    name: "Ubuntu 18.04 + PostgreSQL ${{matrix.PGVER}}"
-    runs-on: ubuntu-18.04
+    name: "Ubuntu 20.04 + PostgreSQL ${{matrix.PGVER}}"
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         PGVER: [10, 11, 12, 13]
