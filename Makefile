@@ -73,10 +73,3 @@ doxsync:
 		cp docs/Topics.txt docs/Languages.txt ../$$m/docs; \
 	done
 
-deb:
-	make -f debian/rules genfiles
-	debuild -us -uc -b
-
-debclean:
-	make -f debian/rules debclean
-
