@@ -148,8 +148,6 @@ checkver:
 		|| { echo "ERROR: $(EXTENSION).control has wrong version"; exit 1; }
 	@test -f "docs/notes/v$(EXT_VERSION).md" \
 		|| { echo "ERROR: notes missing: docs/notes/v$(EXT_VERSION).md"; exit 1; }
-	@head debian/changelog | grep -q "[(]$(EXT_VERSION)-" debian/changelog \
-		|| { echo "ERROR: debian/changelog has wrong version"; exit 1; }
 
 all: checkver
 

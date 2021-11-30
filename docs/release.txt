@@ -1,5 +1,5 @@
 
-* Set new version number in .control, Makefile, debian/changelog
+* Set new version number in .control, Makefile
 * Add release notes to docs/notes
 * git commit -m "vX.Y"
 * "make release" to tag and push it out
