@@ -2,6 +2,10 @@
 # https://docs.github.com/en/actions
 # https://github.com/actions
 #
+# mac: https://brew.sh/
+# win: https://www.msys2.org/docs/package-management/
+# win: https://www.archlinux.org/pacman/pacman.8.html
+#
 
 name: CI
 
@@ -11,20 +15,26 @@ on:
 
 jobs:
 
-  linux:
-    name: "Ubuntu 20.04 + PostgreSQL ${{matrix.PGVER}}"
-    runs-on: ubuntu-20.04
+  unix:
+    name: ${{matrix.test.os}}, pg-${{matrix.test.pgver}}
+    runs-on: ${{matrix.test.os}}
     strategy:
       matrix:
-        PGVER: [10, 11, 12, 13, 14, 15]
+        test:
+          - {pgver: "10", os: "ubuntu-18.04"}
+          - {pgver: "12", os: "ubuntu-20.04"}
+          - {pgver: "14", os: "ubuntu-22.04"}
+          - {pgver: "15", os: "ubuntu-22.04"}
+          - {pgver: "14", os: "macos-latest"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: "InstallDB"
+      - name: "InstallDB / Linux"
+        if: ${{runner.os == 'Linux'}}
         run: |
           echo "::group::apt-get-update"
-          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main ${{matrix.PGVER}}" \
+          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main ${{matrix.test.pgver}}" \
           | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo -nH apt-get -q update
           echo "::endgroup::"
@@ -36,16 +46,22 @@ jobs:
           echo "create_main_cluster = false" | sudo -nH tee /etc/postgresql-common/createcluster.d/no-main.conf
 
           sudo -nH apt-get -qyu install \
-            postgresql-${{matrix.PGVER}} \
-            postgresql-server-dev-${{matrix.PGVER}} \
+            postgresql-${{matrix.test.pgver}} \
+            postgresql-server-dev-${{matrix.test.pgver}} \
             libpq-dev patchutils
           echo "::endgroup::"
 
           # tune environment
-          echo "/usr/lib/postgresql/${{matrix.PGVER}}/bin" >> $GITHUB_PATH
+          echo "/usr/lib/postgresql/${{matrix.test.pgver}}/bin" >> $GITHUB_PATH
           echo "PGHOST=/tmp" >> $GITHUB_ENV
+          echo "SED=sed" >> $GITHUB_ENV
 
-          dpkg -l postgres\* libpq\* bison\* flex\* gcc\* clang\* libllvm\*
+      - name: "InstallDB / MacOS"
+        if: ${{runner.os == 'macOS'}}
+        run: |
+          brew install gnu-sed postgresql@${{matrix.test.pgver}}
+          echo "/usr/local/opt/postgresql@${{matrix.test.pgver}}/bin" >> $GITHUB_PATH
+          echo "SED=gsed" >> $GITHUB_ENV
 
       - name: "Build"
         run: make
@@ -58,8 +74,9 @@ jobs:
           rm -rf data log
           mkdir -p log
           LANG=C initdb data
-          sed -ri -e "s,^[# ]*(unix_socket_directories).*,\\1='/tmp'," data/postgresql.conf
+          ${SED} -r -i -e "s,^[# ]*(unix_socket_directories).*,\\1='/tmp'," data/postgresql.conf
           pg_ctl -D data -l log/pg.log start || { cat log/pg.log ; exit 1; }
+          sleep 2
 
       - name: "Test"
         run: make citest
@@ -68,4 +85,61 @@ jobs:
         run: |
           pg_ctl -D data stop
           rm -rf data log /tmp/.s.PGSQL*
+
+  mingw:
+    name: ${{matrix.test.os}}, ${{matrix.test.mingw}}
+    runs-on: ${{matrix.test.os}}
+    strategy:
+      matrix:
+        test:
+          #- {os: "windows-latest", arch: "i686", mingw: "mingw32", bits: "32"}
+          - {os: "windows-latest", arch: "x86_64", mingw: "mingw64", bits: "64"}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+
+      - name: "Setup MSYS"
+        shell: cmd
+        run: |
+          echo C:\msys64\usr\bin>> %GITHUB_PATH%
+          echo C:\msys64\${{matrix.test.mingw}}\bin>> %GITHUB_PATH%
+
+      - name: "InstallDB / mingw / ${{matrix.test.arch}}"
+        shell: bash
+        run: |
+          # install
+          pacman -S --noconfirm --needed \
+            mingw-w64-${{matrix.test.arch}}-gettext \
+            mingw-w64-${{matrix.test.arch}}-postgresql
+          INCDIR=$(pg_config --includedir)
+          echo "PG_CPPFLAGS=-I${INCDIR}" >> $GITHUB_ENV
+          echo "PG_CPPFLAGS=-I${INCDIR}"
+          echo "PATH=$PATH"
+
+      - name: "Build"
+        shell: bash
+        run: |
+          make
+
+      - name: "Install"
+        shell: bash
+        run: |
+          make install
+
+      - name: "StartDB"
+        shell: bash
+        run: |
+          mkdir log
+          initdb.exe --no-locale -U postgres -D data
+          pg_ctl -D data -l log/pg.log start || { cat log/pg.log ; exit 1; }
+          sleep 3
+
+      - name: "Test"
+        shell: bash
+        run: make citest
+
+      - name: "StopDB"
+        shell: bash
+        run: |
+          pg_ctl -D data stop
 
