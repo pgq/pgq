@@ -144,7 +144,7 @@ static void date_to_json(Datum val, StringInfo dst)
  * Convert row to JSON
  */
 
-static void pgq_jsonenc_row(PgqTriggerEvent *ev, HeapTuple row, StringInfo buf)
+void pgq_jsonenc_row(PgqTriggerEvent *ev, HeapTuple row, StringInfo buf)
 {
 	Oid col_type;
 	Datum col_datum;
@@ -276,9 +276,9 @@ static void fill_json_type(PgqTriggerEvent *ev, HeapTuple row, StringInfo ev_typ
  *
  * Queue events will be in format:
  *    ev_type   - operation type, I/U/D
- *    ev_data   - urlencoded column values
+ *    ev_data   - json-encoded column values
  *    ev_extra1 - table name
- *    ev_extra2 - optional urlencoded backup
+ *    ev_extra2 - optional json-encoded backup of old row
  */
 Datum pgq_jsontriga(PG_FUNCTION_ARGS)
 {
@@ -308,7 +308,7 @@ Datum pgq_jsontriga(PG_FUNCTION_ARGS)
 	if (SPI_connect() < 0)
 		elog(ERROR, "logutriga: SPI_connect() failed");
 
-	pgq_prepare_event(&ev, tg, true);
+	pgq_prepare_event(&ev, tg, true, true);
 	skip = ev.tgargs->skip;
 
 	appendStringInfoString(ev.field[EV_EXTRA1], ev.info->table_name);

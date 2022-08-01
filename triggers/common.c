@@ -525,7 +525,7 @@ static void parse_oldstyle_args(PgqTriggerEvent *ev, TriggerData *tg)
 /*
  * parse trigger arguments.
  */
-void pgq_prepare_event(struct PgqTriggerEvent *ev, TriggerData *tg, bool newstyle)
+void pgq_prepare_event(struct PgqTriggerEvent *ev, TriggerData *tg, bool newstyle, bool jsonbackup)
 {
 	memset(ev, 0, sizeof(*ev));
 
@@ -614,9 +614,13 @@ void pgq_prepare_event(struct PgqTriggerEvent *ev, TriggerData *tg, bool newstyl
 	/*
 	 * Do the backup, if requested.
 	 */
-	if (ev->tgargs->backup) {
+	if (ev->tgargs->backup && ev->op_type == 'U') {
 		ev->field[EV_EXTRA2] = pgq_init_varbuf();
-		pgq_urlenc_row(ev, tg->tg_trigtuple, ev->field[EV_EXTRA2]);
+		if (jsonbackup) {
+			pgq_jsonenc_row(ev, tg->tg_trigtuple, ev->field[EV_EXTRA2]);
+		} else {
+			pgq_urlenc_row(ev, tg->tg_trigtuple, ev->field[EV_EXTRA2]);
+		}
 	}
 }
 

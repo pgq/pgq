@@ -33,7 +33,7 @@ Datum pgq_sqltriga(PG_FUNCTION_ARGS);
  *
  * Queue events will be in format:
  *    ev_type   - operation type, I/U/D/R
- *    ev_data   - urlencoded column values
+ *    ev_data   - partial SQL
  *    ev_extra1 - table name
  *    ev_extra2 - optional urlencoded backup
  */
@@ -60,7 +60,7 @@ Datum pgq_sqltriga(PG_FUNCTION_ARGS)
 	if (SPI_connect() < 0)
 		elog(ERROR, "sqltriga: SPI_connect() failed");
 
-	pgq_prepare_event(&ev, tg, true);
+	pgq_prepare_event(&ev, tg, true, false);
 	skip = ev.tgargs->skip;
 
 	appendStringInfoChar(ev.field[EV_TYPE], ev.op_type);
