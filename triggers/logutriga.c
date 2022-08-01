@@ -107,7 +107,7 @@ Datum pgq_logutriga(PG_FUNCTION_ARGS)
 	if (SPI_connect() < 0)
 		elog(ERROR, "logutriga: SPI_connect() failed");
 
-	pgq_prepare_event(&ev, tg, true);
+	pgq_prepare_event(&ev, tg, true, false);
 	skip = ev.tgargs->skip;
 
 	appendStringInfoString(ev.field[EV_EXTRA1], ev.info->table_name);

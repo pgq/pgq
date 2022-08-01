@@ -14,7 +14,7 @@
 --      SKIP                - The actual operation should be skipped (BEFORE trigger)
 --      ignore=col1[,col2]  - don't look at the specified arguments
 --      pkey=col1[,col2]    - Set pkey fields for the table, autodetection will be skipped
---      backup              - Put urlencoded contents of old row to ev_extra2
+--      backup              - Put contents of old row to ev_extra2 (urlenc/json)
 --      colname=EXPR        - Override field value with SQL expression.  Can reference table
 --                            columns.  colname can be: ev_type, ev_data, ev_extra1 .. ev_extra4
 --      when=EXPR           - If EXPR returns false, don't insert event.
@@ -23,7 +23,7 @@
 --      ev_type      - I/U/D ':' pkey_column_list
 --      ev_data      - column values urlencoded
 --      ev_extra1    - table name
---      ev_extra2    - optional urlencoded backup
+--      ev_extra2    - optional backup of old row (urlenc/json)
 --
 -- Regular listen trigger example:
 -- >   CREATE TRIGGER triga_nimi AFTER INSERT OR UPDATE ON customer

@@ -86,7 +86,7 @@ struct PgqTableInfo {
 };
 
 /* common.c */
-void pgq_prepare_event(struct PgqTriggerEvent *ev, TriggerData *tg, bool newstyle);
+void pgq_prepare_event(struct PgqTriggerEvent *ev, TriggerData *tg, bool newstyle, bool jsonbackup);
 void pgq_simple_insert(const char *queue_name, Datum ev_type, Datum ev_data,
 		       Datum ev_extra1, Datum ev_extra2, Datum ev_extra3, Datum ev_extra4);
 bool pgqtriga_skip_col(PgqTriggerEvent *ev, int i, int attkind_idx);
@@ -100,6 +100,9 @@ int pgqtriga_make_sql(PgqTriggerEvent *ev, StringInfo sql);
 
 /* logutriga.c */
 void pgq_urlenc_row(PgqTriggerEvent *ev, HeapTuple row, StringInfo buf);
+
+/* jsontriga.c */
+void pgq_jsonenc_row(PgqTriggerEvent *ev, HeapTuple row, StringInfo buf);
 
 int pgq_is_interesting_change(PgqTriggerEvent *ev, TriggerData *tg);
 
