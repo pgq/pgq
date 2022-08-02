@@ -1,8 +1,8 @@
 
 EXTENSION = pgq
 
-EXT_VERSION = 3.4.2
-EXT_OLD_VERSIONS = 3.2 3.2.3 3.2.6 3.3.1 3.4 3.4.1
+EXT_VERSION = 3.5
+EXT_OLD_VERSIONS = 3.2 3.2.3 3.2.6 3.3.1 3.4 3.4.1 3.4.2
 
 PGQ_TESTS = pgq_core pgq_core_disabled pgq_core_tx_limit \
 	    pgq_session_role pgq_perms \
