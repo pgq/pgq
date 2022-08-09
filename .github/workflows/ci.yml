@@ -21,10 +21,17 @@ jobs:
     strategy:
       matrix:
         test:
-          - {pgver: "10", os: "ubuntu-18.04"}
-          - {pgver: "12", os: "ubuntu-20.04"}
-          - {pgver: "14", os: "ubuntu-22.04"}
-          - {pgver: "15", os: "ubuntu-22.04"}
+          #- {pgver: "9.3", os: "ubuntu-22.04", "repo": "pgdg"}
+          - {pgver: "9.4", os: "ubuntu-22.04", "repo": "pgdg"}
+          - {pgver: "9.5", os: "ubuntu-22.04", "repo": "pgdg"}
+          - {pgver: "9.6", os: "ubuntu-22.04", "repo": "pgdg"}
+          - {pgver: "10", os: "ubuntu-20.04", "repo": "pgdg"}
+          - {pgver: "11", os: "ubuntu-20.04", "repo": "pgdg"}
+          - {pgver: "12", os: "ubuntu-20.04", "repo": "pgdg"}
+          - {pgver: "13", os: "ubuntu-22.04", "repo": "pgdg"}
+          - {pgver: "14", os: "ubuntu-22.04", "repo": "pgdg"}
+          - {pgver: "15", os: "ubuntu-22.04", "repo": "pgdg"}
+          - {pgver: "16", os: "ubuntu-22.04", "repo": "pgdg-snapshot"}
           - {pgver: "14", os: "macos-latest"}
     steps:
       - name: "Checkout"
@@ -34,7 +41,8 @@ jobs:
         if: ${{runner.os == 'Linux'}}
         run: |
           echo "::group::apt-get-update"
-          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main ${{matrix.test.pgver}}" \
+          repo="$(lsb_release -cs)-${{matrix.test.repo}}"
+          echo "deb https://apt.postgresql.org/pub/repos/apt/ ${repo} main ${{matrix.test.pgver}}" \
           | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo -nH apt-get -q update
           echo "::endgroup::"
