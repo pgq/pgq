@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         test:
-          - {pgver: "9.3", os: "ubuntu-22.04", "repo": "pgdg"}
+          #- {pgver: "9.3", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.4", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.5", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.6", os: "ubuntu-22.04", "repo": "pgdg"}
