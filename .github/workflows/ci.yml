@@ -21,8 +21,12 @@ jobs:
     strategy:
       matrix:
         test:
+          - {pgver: "9.5", os: "ubuntu-18.04", "repo": "pgdg"}
+          - {pgver: "9.6", os: "ubuntu-18.04", "repo": "pgdg"}
           - {pgver: "10", os: "ubuntu-18.04", "repo": "pgdg"}
+          - {pgver: "11", os: "ubuntu-18.04", "repo": "pgdg"}
           - {pgver: "12", os: "ubuntu-20.04", "repo": "pgdg"}
+          - {pgver: "13", os: "ubuntu-20.04", "repo": "pgdg"}
           - {pgver: "14", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "15", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "16", os: "ubuntu-22.04", "repo": "pgdg-snapshot"}
