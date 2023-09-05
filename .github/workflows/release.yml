@@ -11,42 +11,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout code
-        id: checkout
-        uses: actions/checkout@v2
+      - name: "Checkout code"
+        uses: actions/checkout@v3
 
-      - name: Build tarball
-        id: build
+      - name: "Build tarball"
         run: |
           make checkver
           make dist
           EXTENSION=$(grep ^EXTENSION Makefile | sed 's/.*= *//')
           EXT_VERSION=$(grep ^EXT_VERSION Makefile | sed 's/.*= *//')
           test "${{github.ref}}" = "refs/tags/v${EXT_VERSION}" || { echo "ERR: tag mismatch"; exit 1; }
-          echo "EXTENSION=${EXTENSION}" >> $GITHUB_ENV
-          echo "EXT_VERSION=${EXT_VERSION}" >> $GITHUB_ENV
+          echo "PACKAGE=${EXTENSION}" >> $GITHUB_ENV
+          echo "VERSION=${EXT_VERSION}" >> $GITHUB_ENV
           echo "TGZ=${EXTENSION}-${EXT_VERSION}.tar.gz" >> $GITHUB_ENV
+          echo "DRAFT=false" >> $GITHUB_ENV
+          echo "PRERELEASE=false" >> $GITHUB_ENV
 
-      - name: Create release
-        id: release
-        uses: actions/create-release@v1
+      - name: "Create Github release"
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        with:
-          tag_name: ${{github.ref}}
-          release_name: ${{github.event.repository.name}} v${{env.EXT_VERSION}}
-          body_path: docs/notes/v${{env.EXT_VERSION}}.md
-          draft: false
-          prerelease: false
-
-      - name: Upload source
-        id: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        with:
-          upload_url: ${{steps.release.outputs.upload_url}}
-          asset_path: ${{env.TGZ}}
-          asset_name: ${{env.TGZ}}
-          asset_content_type: application/x-gzip
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          title="${PACKAGE} v${VERSION}"
+          ghf="--notes-file=docs/notes/v${VERSION}.md"
+          if test "${DRAFT}" = "true"; then ghf="${ghf} --draft"; fi
+          if test "${PRERELEASE}" = "true"; then ghf="${ghf} --prerelease"; fi
+          gh release create "v${VERSION}" "dist/${TGZ}" --title="${title}" ${ghf}
 
