@@ -41,6 +41,11 @@ jobs:
         if: ${{runner.os == 'Linux'}}
         run: |
           echo "::group::apt-get-update"
+          sudo -nH apt-get -q update
+          sudo -nH apt-get -q install curl ca-certificates gnupg
+          curl https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+          | gpg --dearmor \
+          | sudo -nH tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg
           repo="$(lsb_release -cs)-${{matrix.test.repo}}"
           echo "deb https://apt.postgresql.org/pub/repos/apt/ ${repo} main ${{matrix.test.pgver}}" \
           | sudo tee /etc/apt/sources.list.d/pgdg.list
