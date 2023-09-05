@@ -21,7 +21,6 @@ jobs:
     strategy:
       matrix:
         test:
-          #- {pgver: "9.3", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.4", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.5", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.6", os: "ubuntu-22.04", "repo": "pgdg"}
@@ -125,8 +124,16 @@ jobs:
             mingw-w64-${{matrix.test.arch}}-gettext \
             mingw-w64-${{matrix.test.arch}}-postgresql
           INCDIR=$(pg_config --includedir)
-          echo "PG_CPPFLAGS=-I${INCDIR}" >> $GITHUB_ENV
-          echo "PG_CPPFLAGS=-I${INCDIR}"
+          PG_CPPFLAGS="-I${INCDIR}"
+          PG_CPPFLAGS="${PG_CPPFLAGS} -fstack-check=no -fno-stack-protector"  # enabled by default but broken
+          #case ${{matrix.test.arch}} in
+          #i686) PG_CFLAGS="-m32";;
+          #x86_64) PG_CFLAGS="-m64";;
+          #esac
+          #echo "PG_CFLAGS=${PG_CFLAGS}" >> $GITHUB_ENV
+          #echo "PG_CFLAGS=${PG_CFLAGS}"
+          echo "PG_CPPFLAGS=${PG_CPPFLAGS}" >> $GITHUB_ENV
+          echo "PG_CPPFLAGS=${PG_CPPFLAGS}"
           echo "PATH=$PATH"
 
       - name: "Build"
