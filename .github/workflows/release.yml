@@ -35,5 +35,5 @@ jobs:
           ghf="--notes-file=docs/notes/v${VERSION}.md"
           if test "${DRAFT}" = "true"; then ghf="${ghf} --draft"; fi
           if test "${PRERELEASE}" = "true"; then ghf="${ghf} --prerelease"; fi
-          gh release create "v${VERSION}" "dist/${TGZ}" --title="${title}" ${ghf}
+          gh release create "v${VERSION}" "${TGZ}" --title="${title}" ${ghf}
 
