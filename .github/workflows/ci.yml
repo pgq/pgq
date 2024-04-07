@@ -31,10 +31,10 @@ jobs:
           - {pgver: "14", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "15", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "16", os: "ubuntu-22.04", "repo": "pgdg"}
-          - {pgver: "14", os: "macos-latest"}
+          - {pgver: "16", os: "macos-latest"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "InstallDB / Linux"
         if: ${{runner.os == 'Linux'}}
@@ -104,11 +104,10 @@ jobs:
     strategy:
       matrix:
         test:
-          #- {os: "windows-latest", arch: "i686", mingw: "mingw32", bits: "32"}
           - {os: "windows-latest", arch: "x86_64", mingw: "mingw64", bits: "64"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Setup MSYS"
         shell: cmd
@@ -121,17 +120,13 @@ jobs:
         run: |
           # install
           pacman -S --noconfirm --needed \
+            mingw-w64-${{matrix.test.arch}}-libxml2 \
+            mingw-w64-${{matrix.test.arch}}-libxslt \
             mingw-w64-${{matrix.test.arch}}-gettext \
             mingw-w64-${{matrix.test.arch}}-postgresql
+          # Workaround to find <libintl.h>
           INCDIR=$(pg_config --includedir)
           PG_CPPFLAGS="-I${INCDIR}"
-          PG_CPPFLAGS="${PG_CPPFLAGS} -fstack-check=no -fno-stack-protector"  # enabled by default but broken
-          #case ${{matrix.test.arch}} in
-          #i686) PG_CFLAGS="-m32";;
-          #x86_64) PG_CFLAGS="-m64";;
-          #esac
-          #echo "PG_CFLAGS=${PG_CFLAGS}" >> $GITHUB_ENV
-          #echo "PG_CFLAGS=${PG_CFLAGS}"
           echo "PG_CPPFLAGS=${PG_CPPFLAGS}" >> $GITHUB_ENV
           echo "PG_CPPFLAGS=${PG_CPPFLAGS}"
           echo "PATH=$PATH"
