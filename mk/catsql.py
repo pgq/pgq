@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""Prints out SQL files with psql command execution.
+r"""Prints out SQL files with psql command execution.
 
 Supported psql commands: \i, \cd, \q
 Others are skipped.
