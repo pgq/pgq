@@ -121,11 +121,13 @@ jobs:
         run: |
           # install
           pacman -S --noconfirm --needed \
+            mingw-w64-${{matrix.test.arch}}-libxml2 \
+            mingw-w64-${{matrix.test.arch}}-libxslt \
             mingw-w64-${{matrix.test.arch}}-gettext \
             mingw-w64-${{matrix.test.arch}}-postgresql
           INCDIR=$(pg_config --includedir)
           PG_CPPFLAGS="-I${INCDIR}"
-          PG_CPPFLAGS="${PG_CPPFLAGS} -fstack-check=no -fno-stack-protector"  # enabled by default but broken
+          #PG_CPPFLAGS="${PG_CPPFLAGS} -fstack-check=no -fno-stack-protector"  # enabled by default but broken
           #case ${{matrix.test.arch}} in
           #i686) PG_CFLAGS="-m32";;
           #x86_64) PG_CFLAGS="-m64";;
