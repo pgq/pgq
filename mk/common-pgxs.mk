@@ -48,8 +48,8 @@ REGRESS_OPTS = --dbname=$(CONTRIB_TESTDB)
 
 GRANT_SQL = structure/newgrants_$(EXTENSION).sql
 
-SQLS  = $(shell $(AWK) '/^\\i / { print $$2; }' structure/install.sql)
-FUNCS = $(shell $(AWK) '/^\\i / { print $$2; }' $(SQLS))
+SQLS  = $(shell $(AWK) -f mk/show-inc.awk structure/install.sql)
+FUNCS = $(shell $(AWK) -f mk/show-inc.awk $(SQLS))
 SRCS = $(SQLS) $(FUNCS) $(GRANT_SQL)
 
 #
