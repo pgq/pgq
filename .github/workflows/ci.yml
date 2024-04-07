@@ -34,7 +34,7 @@ jobs:
           - {pgver: "14", os: "macos-latest"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "InstallDB / Linux"
         if: ${{runner.os == 'Linux'}}
@@ -108,7 +108,7 @@ jobs:
           - {os: "windows-latest", arch: "x86_64", mingw: "mingw64", bits: "64"}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Setup MSYS"
         shell: cmd
