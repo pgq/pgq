@@ -24,14 +24,16 @@ jobs:
           - {pgver: "9.4", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.5", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "9.6", os: "ubuntu-22.04", "repo": "pgdg"}
-          - {pgver: "10", os: "ubuntu-20.04", "repo": "pgdg"}
-          - {pgver: "11", os: "ubuntu-20.04", "repo": "pgdg"}
-          - {pgver: "12", os: "ubuntu-20.04", "repo": "pgdg"}
+          - {pgver: "10", os: "ubuntu-24.04", "repo": "pgdg"}
+          - {pgver: "11", os: "ubuntu-24.04", "repo": "pgdg"}
+          - {pgver: "12", os: "ubuntu-24.04", "repo": "pgdg"}
           - {pgver: "13", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "14", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "15", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "16", os: "ubuntu-22.04", "repo": "pgdg"}
-          - {pgver: "16", os: "macos-latest"}
+          - {pgver: "17", os: "ubuntu-24.04", "repo": "pgdg"}
+          - {pgver: "18", os: "ubuntu-24.04", "repo": "pgdg"}
+          - {pgver: "18", os: "macos-latest"}
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
@@ -71,9 +73,11 @@ jobs:
       - name: "InstallDB / MacOS"
         if: ${{runner.os == 'macOS'}}
         run: |
-          brew install gnu-sed postgresql@${{matrix.test.pgver}}
-          echo "/usr/local/opt/postgresql@${{matrix.test.pgver}}/bin" >> $GITHUB_PATH
-          echo "SED=gsed" >> $GITHUB_ENV
+          brew install pkgconf make gnu-sed postgresql@${{matrix.test.pgver}}
+          echo "/opt/homebrew/opt/postgresql@${{matrix.test.pgver}}/bin" >> $GITHUB_PATH
+          echo "/opt/homebrew/opt/make/libexec/gnubin" >> $GITHUB_PATH
+          echo "/opt/homebrew/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
+          echo "SED=sed" >> $GITHUB_ENV
 
       - name: "Build"
         run: make
