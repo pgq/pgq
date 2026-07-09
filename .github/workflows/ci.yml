@@ -33,6 +33,7 @@ jobs:
           - {pgver: "16", os: "ubuntu-22.04", "repo": "pgdg"}
           - {pgver: "17", os: "ubuntu-24.04", "repo": "pgdg"}
           - {pgver: "18", os: "ubuntu-24.04", "repo": "pgdg"}
+          - {pgver: "19", os: "ubuntu-latest", "repo": "pgdg"}
           - {pgver: "18", os: "macos-latest"}
     steps:
       - name: "Checkout"
