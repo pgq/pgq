@@ -29,8 +29,10 @@
 
 #include "stringutil.h"
 
+#if PG_VERSION_NUM < 190000
 #ifndef SET_VARSIZE
 #define SET_VARSIZE(x, len) VARATT_SIZEP(x) = len
+#endif
 #endif
 
 #if PG_VERSION_NUM < 90100
