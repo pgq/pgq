@@ -6,6 +6,7 @@
 #include "parsesql.h"
 
 /* import standard_conforming_strings */
+#if PG_VERSION_NUM < 190000
 #if PG_VERSION_NUM >= 80500
 #include <parser/parser.h>
 #else
@@ -13,6 +14,9 @@
 #define PGDLLIMPORT DLLIMPORT
 #endif
 extern PGDLLIMPORT bool standard_conforming_strings;
+#endif
+#else /* PG_VERSION_NUM >= 190000 */
+#define standard_conforming_strings 1
 #endif
 
 /* create QB in right context */
